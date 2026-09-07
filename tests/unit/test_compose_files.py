@@ -134,3 +134,72 @@ def test_the_dockerignore_keeps_the_build_context_small():
     body = (ROOT / ".dockerignore").read_text(encoding="utf-8")
     for entry in (".venv/", ".git/", "tests/", ".env"):
         assert entry in body, f"{entry} would be copied into the image"
+
+
+class TestTheRenderBlueprint:
+    """`render.yaml` describes the deployment. NOT VERIFIED: never applied — no account
+    exists and creating one is the owner's action. What is checked is everything that
+    can be checked without one."""
+
+    @pytest.fixture(scope="class")
+    def blueprint(self) -> dict:
+        path = ROOT / "render.yaml"
+        assert path.exists(), "the deployment blueprint is part of the deliverable"
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+    def test_it_declares_a_database_a_web_service_a_worker_and_a_schedule(self, blueprint):
+        assert [d["name"] for d in blueprint["databases"]] == ["playlens-db"]
+        kinds = {s["type"] for s in blueprint["services"]}
+        assert kinds == {"web", "worker", "cron"}
+
+    def test_no_secret_is_written_into_the_file(self, blueprint):
+        """`sync: false` means Render prompts for it; a literal would be a committed key."""
+        for service in blueprint["services"]:
+            for var in service["envVars"]:
+                if var["key"] in {"LLM_API_KEY", "YOUTUBE_API_KEY"}:
+                    assert var.get("sync") is False, f"{var['key']} must not be committed"
+                    assert "value" not in var
+
+    def test_the_admin_token_is_generated_rather_than_defaulted(self, blueprint):
+        web = next(s for s in blueprint["services"] if s["type"] == "web")
+        token = next(v for v in web["envVars"] if v["key"] == "ADMIN_TOKEN")
+        assert token.get("generateValue") is True
+
+    def test_every_service_gets_the_same_database(self, blueprint):
+        for service in blueprint["services"]:
+            url = next(v for v in service["envVars"] if v["key"] == "DATABASE_URL")
+            assert url["fromDatabase"]["name"] == "playlens-db"
+
+    def test_production_is_the_declared_environment(self, blueprint):
+        for service in blueprint["services"]:
+            env = next(v for v in service["envVars"] if v["key"] == "APP_ENV")
+            assert env["value"] == "production"
+
+    def test_the_health_check_points_at_the_health_endpoint(self, blueprint):
+        web = next(s for s in blueprint["services"] if s["type"] == "web")
+        assert web["healthCheckPath"] == "/api/v1/health"
+
+    def test_the_cron_command_is_one_the_cli_actually_has(self, blueprint):
+        """A schedule calling a command that does not exist fails once an hour, quietly."""
+        from app.cli import build_parser
+
+        cron = next(s for s in blueprint["services"] if s["type"] == "cron")
+        command = cron["dockerCommand"].split()
+        assert command[:3] == ["python", "-m", "app.cli"]
+        build_parser().parse_args(command[3:])  # raises SystemExit if unknown
+
+    def test_the_entrypoint_runs_an_explicit_command_instead_of_switching_on_role(self):
+        """Render's cron passes a command. Without this branch it would hit the
+        unknown-role case and exit 64 every hour."""
+        script = (ROOT / "docker" / "entrypoint.sh").read_text(encoding="utf-8")
+        assert 'if [ "$#" -gt 0 ]' in script
+        assert 'exec "$@"' in script
+        assert script.index('exec "$@"') < script.index('case "${ROLE')
+
+    def test_the_web_port_comes_from_the_platform(self):
+        """Render, Railway, Heroku and Cloud Run all set $PORT and route to it. A
+        hardcoded port means the health check never connects and the deploy rolls back
+        with "no open ports detected"."""
+        script = (ROOT / "docker" / "entrypoint.sh").read_text(encoding="utf-8")
+        assert "${PORT:-8000}" in script
+        assert "--port 8000" not in script

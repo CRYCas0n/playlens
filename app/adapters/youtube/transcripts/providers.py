@@ -47,12 +47,10 @@ def looks_like_subtitles(text: str) -> bool:
         return False
     if head.startswith("#EXTM3U"):
         return False
+    # A transcript is speech. A body that is a third URLs by weight is a manifest, an
+    # error page, or a directory listing.
     urls = _URL_RE.findall(text)
-    if urls and sum(len(u) for u in urls) > 0.3 * len(text):
-        # A transcript is speech. A body that is a third URLs by weight is a manifest,
-        # an error page, or a directory listing.
-        return False
-    return True
+    return not (urls and sum(len(u) for u in urls) > 0.3 * len(text))
 
 
 def clean_captions(text: str) -> str:

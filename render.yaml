@@ -1,0 +1,129 @@
+# Render blueprint: the whole stack from one file.
+#
+# Chosen over the alternatives because it is the only one that gives all six things this
+# service needs without extra moving parts: managed PostgreSQL, a long-running worker, a
+# scheduled job, environment secrets, HTTPS and a public URL. Fly.io and Railway can do
+# it too; both need a CLI and a card before anything exists. Comparison in
+# docs/DEPLOYMENT.md.
+#
+# NOT VERIFIED: this has never been applied. No Render account exists, and creating one
+# is the owner's action. The file is written to the documented schema and its YAML parses.
+#
+# To deploy: Render dashboard -> New -> Blueprint -> pick this repository.
+# Then set the two secret values it asks for; everything else is here.
+
+databases:
+  - name: playlens-db
+    plan: free
+    databaseName: playlens
+    user: playlens
+    # Free-tier Postgres on Render expires after 30 days. For anything beyond a demo,
+    # change to `starter`. Said here rather than discovered later.
+    postgresMajorVersion: "16"
+
+services:
+  # ---------------------------------------------------------------- web
+  - type: web
+    name: playlens
+    runtime: docker
+    plan: free
+    dockerfilePath: ./docker/backend.Dockerfile
+    dockerContext: .
+    # The image decides its role from ROLE; the entrypoint runs migrations for the api
+    # role only, so exactly one process ever touches Alembic's lock.
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: ROLE
+        value: api
+      - key: APP_ENV
+        value: production
+      - key: LOG_FORMAT
+        value: json
+      - key: DATABASE_URL
+        fromDatabase:
+          name: playlens-db
+          property: connectionString
+      - key: ADMIN_TOKEN
+        generateValue: true          # Render generates and stores it; never in this file
+      - key: LLM_ENABLED
+        value: "true"
+      - key: LLM_PROVIDER
+        value: openai
+      - key: LLM_MODEL
+        value: gpt-4o
+      - key: LLM_API_KEY
+        sync: false                  # entered in the dashboard, not committed
+      - key: YOUTUBE_ENABLED
+        value: "true"
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: AI_DAILY_COST_LIMIT_USD
+        value: "10"
+      # Same origin serves the HTML and the API, so no cross-origin access is needed.
+      - key: CORS_ALLOW_ORIGINS
+        value: ""
+
+  # ---------------------------------------------------------------- worker
+  - type: worker
+    name: playlens-worker
+    runtime: docker
+    plan: starter                    # free plan has no worker type
+    dockerfilePath: ./docker/backend.Dockerfile
+    dockerContext: .
+    envVars:
+      - key: ROLE
+        value: worker
+      - key: APP_ENV
+        value: production
+      - key: LOG_FORMAT
+        value: json
+      - key: DATABASE_URL
+        fromDatabase:
+          name: playlens-db
+          property: connectionString
+      - key: ADMIN_TOKEN
+        fromService:
+          name: playlens
+          type: web
+          envVarKey: ADMIN_TOKEN
+      - key: LLM_ENABLED
+        value: "true"
+      - key: LLM_PROVIDER
+        value: openai
+      - key: LLM_MODEL
+        value: gpt-4o
+      - key: LLM_API_KEY
+        sync: false
+      - key: YOUTUBE_ENABLED
+        value: "true"
+      - key: YOUTUBE_API_KEY
+        sync: false
+
+  # ---------------------------------------------------------------- scheduler
+  # A cron job rather than a third long-running process. The scheduler's whole purpose is
+  # to enqueue one tick an hour, and the enqueue is idempotent by key — so a cron that
+  # fires twice costs nothing, and a process that sits idle for 59 minutes costs money.
+  - type: cron
+    name: playlens-crawl
+    runtime: docker
+    plan: starter
+    schedule: "7 * * * *"
+    dockerfilePath: ./docker/backend.Dockerfile
+    dockerContext: .
+    dockerCommand: python -m app.cli crawl
+    envVars:
+      - key: ROLE
+        value: cron
+      - key: APP_ENV
+        value: production
+      - key: LOG_FORMAT
+        value: json
+      - key: DATABASE_URL
+        fromDatabase:
+          name: playlens-db
+          property: connectionString
+      - key: ADMIN_TOKEN
+        fromService:
+          name: playlens
+          type: web
+          envVarKey: ADMIN_TOKEN

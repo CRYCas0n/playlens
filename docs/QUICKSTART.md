@@ -218,7 +218,17 @@ In the second:
 
 **You should see:** `scheduler.started`. It queues a crawl every hour.
 
-To fetch some games immediately rather than waiting for the hour, in a fourth window:
+To fetch some games immediately rather than waiting for the hour, open a fourth
+window. The simplest way is the command line: no token, no curl.
+
+```powershell
+cd "C:\Users\CRYCA\Claude VS Code Project\metacritic-service"
+.\.venv\Scripts\python -m app.cli crawl
+```
+
+**You should see:** a small table ending with how many games were queued.
+
+Or through the API, if you prefer:
 
 ```powershell
 cd "C:\Users\CRYCA\Claude VS Code Project\metacritic-service"

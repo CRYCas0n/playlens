@@ -1,5 +1,7 @@
 # Playlens
 
+[![repo](https://img.shields.io/badge/github-CRYCas0n%2Fplaylens-24292e)](https://github.com/CRYCas0n/playlens)
+
 A game intelligence service built on Metacritic data. It answers one question a score
 cannot: **do critics and players agree, and if not, why not?**
 
@@ -31,10 +33,13 @@ make worker         # processes the queue
 make scheduler      # enqueues the hourly crawl
 ```
 
-Then queue the first crawl:
+Then fill the catalogue. There is a command line for this, so no curl and no token:
 
 ```bash
-curl -X POST localhost:8000/api/v1/admin/crawl/run -H "X-Admin-Token: $ADMIN_TOKEN"
+python -m app.cli status             # health, counts, cost, queue depth
+python -m app.cli crawl              # one crawl tick, inline
+python -m app.cli seed --limit 500   # the top of the ranking, same pipeline (ADR-014)
+python -m app.cli summarise --slug ashen-veil
 ```
 
 Watch it at <http://localhost:8000/admin/monitoring>, or read
@@ -152,10 +157,10 @@ directly (`python -m pytest -q`, and so on) — [`docs/QUICKSTART.md`](docs/QUIC
 spells them out.
 
 ```bash
-make test              # 749 tests
+make test              # 781 tests
 make test-unit         # no database, no network
 make test-integration  # real Alembic migrations, real queries
-make test-pg           # the same suite against PostgreSQL
+make test-pg           # the same suite against PostgreSQL 16 (362 of them, green)
 make lint
 make smoke             # boot the assembled app, request every route
 make browser           # real Chromium over every page at 1440/1280/768/390
@@ -228,6 +233,9 @@ rated it 0, which is not a score of zero.
 | [`docs/HANDOFF.md`](docs/HANDOFF.md) | What still needs a person, in order |
 | [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) | What is verified, what is not, and why |
 | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) | Every alert, its diagnosis and its fix |
+| [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) | Render, a VPS, and what each costs |
+| [`docs/RELEASE0_FINAL.md`](docs/RELEASE0_FINAL.md) | The AI measurement on all 20 games, including the number that missed target |
+| [`docs/FINAL_PRODUCTION_GAP.md`](docs/FINAL_PRODUCTION_GAP.md) | Every area, its evidence, its status |
 | [`docs/FINAL_AUDIT.md`](docs/FINAL_AUDIT.md) | What was checked by running it, and the 21 defects that found |
 | [`docs/HUMAN_EVALUATION.md`](docs/HUMAN_EVALUATION.md) | Twenty minutes to find out whether the AI summaries are any good |
 
