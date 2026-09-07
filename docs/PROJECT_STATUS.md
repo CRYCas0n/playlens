@@ -3,7 +3,7 @@
 **Date:** 2026-09-07 · **Repository:** <https://github.com/CRYCas0n/playlens>
 **Production:** <https://playlens.45.67.202.162.sslip.io> — deployed, serving, ingesting
 
-**CI:** green on GitHub Actions · **Run:** `965 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
+**CI:** green on GitHub Actions · **Run:** `985 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
 `smoke: 15 routes` · Release 0 on all 20 games against a live model
 
 Statuses mean one thing each:
@@ -22,7 +22,7 @@ Statuses mean one thing each:
 
 | Area | Status | Evidence |
 |---|---|---|
-| **Repository** | VERIFIED | `github.com/CRYCas0n/playlens`, private, 271 files, no secrets in the index |
+| **Repository** | VERIFIED | `github.com/CRYCas0n/playlens`, **public**, secret scanning and push protection on. 624 blobs across the whole history scanned for 8 secret classes; nothing found |
 | **Backend** | VERIFIED | 781 tests. `scripts/smoke.py` boots the assembled app across 15 routes |
 | **Database — PostgreSQL 16** | VERIFIED | 362 integration tests against a real server. `pg_trgm`, 4 NULLS LAST indexes, all 5 partial unique indexes present |
 | **Database — SQLite** | VERIFIED | Same suite, same assertions, 768 passing |
@@ -39,8 +39,9 @@ Statuses mean one thing each:
 | **AI — evidence validation** | VERIFIED | 42 rejections on real data across 6 classes; 7 invented references caught, 0 published |
 | **AI — cost ceiling** | VERIFIED | Enforced before the call, and it **defers** rather than dropping the work: 237 jobs observed in `retrying` with `next_retry_at` at the top of the hour, waiting for the window to reset. It used to return success having done nothing, which spent the job's key and lost the work silently |
 | **AI — is it useful** | NEEDS HUMAN ACTION | Needs a person who did not write the summaries. `docs/HUMAN_EVALUATION.md`, 20 minutes |
-| **YouTube — discovery and ranking** | VERIFIED | Live Data API, and in production: 42 `youtube.discover` jobs succeeded, 0 failed, real videos linked on game pages |
-| **YouTube — transcripts** | BLOCKED | yt-dlp offered only an m3u8 caption track. No PO-token path, no paid provider. Degradation verified: link and metadata shown, **no AI text** |
+| **YouTube — discovery and ranking** | VERIFIED | Live Data API, and in production: 200 discovery jobs succeeded, 2,285 videos ranked, real videos linked on game pages |
+| **YouTube — transcripts** | VERIFIED | Real transcripts from live videos: 24,541 / 18,422 / 142,542 characters via yt-dlp. Three defects were stacked behind the earlier BLOCKED verdict — the task chain was never joined, yt-dlp was in no image, and a `claim_type` no enum contains made the database refuse every row |
+| **YouTube — AI conclusion** | VERIFIED | Written from the transcript, not from reviews, and labelled as such. Three on the live site, spoiler-free, beside the video's channel, duration and link |
 | **Similarity** | VERIFIED | 12 tests. No reason invented below the contribution threshold |
 | **Search, filters, sorting** | VERIFIED | Both dialects. Unrated never floats to the top in either direction |
 | **UI — data rules** | VERIFIED | All 28 cases of `design/EDGE_CASES.md`, 44 tests |

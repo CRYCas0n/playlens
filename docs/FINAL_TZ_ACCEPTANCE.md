@@ -73,18 +73,24 @@ the repository and does not run in production is not VERIFIED here, and three ro
 | Pick a relevant Let's Play | Filters on duration, language, title shape | Live | 6 of 15 candidates rejected by filters in one observed run | **VERIFIED** |
 | Ranking | Explainable components: relevance, popularity, duration, recency | Live | `score` and `components` stored per candidate | **VERIFIED** |
 | Choose the most popular suitable video | `select()` above `yt_min_score`; no video is a supported outcome | Live | `is_selected` rows | **VERIFIED** |
-| Fetch the transcript | Provider cascade: yt-dlp → hosted API → metadata-only | Attempted in production **after this pass linked the chain** | Before this pass: 180 discoveries and **zero** transcript attempts — the three tasks were never joined | **IMPLEMENTED — NOT VERIFIED** |
-| Fallback between providers | The cascade records every attempt and its error | Unit tests on the cascade; no hosted provider is configured, so only yt-dlp runs | `YT_TRANSCRIPT_API_URL` is unset — a paid dependency | **IMPLEMENTED — NOT VERIFIED** |
-| AI conclusion from the transcript | `youtube.summarise`, written from the video, labelled as such | Cannot run without a transcript | ADR-016: no transcript, no conclusion — never an impression from a title | **BLOCKED** |
+| Fetch the transcript | Provider cascade: yt-dlp → hosted API → metadata-only | Run in production against live videos | **24,541 / 18,422 / 142,542 characters** fetched by yt-dlp from three real playthroughs | **VERIFIED** |
+| Fallback between providers | The cascade tries each in order and records every attempt with its error | Observed in production before yt-dlp was installed | `disabled; disabled; empty_or_too_short: 0 chars, need 2000` — three providers, three honest outcomes, no invented text | **VERIFIED** |
+| AI conclusion from the transcript | `youtube.summarise`, written from the video and labelled as such, never from reviews | Run in production once the chain, the dependency and the enum were all fixed | See the live evidence below | **VERIFIED** |
 | Link to the video | Always rendered when a video was found | Production game pages | `youtube.com/watch?v=…` on pages with a video | **VERIFIED** |
 | Shown on the game card | The section appears only when a video exists | Production | The section, its thumbnail, duration and channel | **VERIFIED** |
 
-**On the transcript.** yt-dlp is offered only an HLS (m3u8) caption track for these videos,
-which is a manifest of URLs rather than speech; a PO token would be required for the real
-one. The degradation is deliberate and visible: the video, its channel, duration and link
-are shown, with "Прохождение нашлось, но прочитать субтитры не удалось" and no AI text at
-all. A hosted transcript API would close it; that is a paid dependency and not a code
-change.
+**On the transcript.** This was reported BLOCKED in every earlier document, on the
+evidence that yt-dlp was offered only an m3u8 caption track. That evidence came from
+running yt-dlp on a Windows laptop; in the container it fetches the real thing. Three
+defects were stacked behind that wrong conclusion, each hidden by the one before it: the
+three Let's Play tasks were never joined so no transcript was ever attempted, yt-dlp was
+in neither image, and the service wrote a `claim_type` that no enum contains so the
+database refused every row. All three are fixed, each with a test that was checked by
+reverting the fix.
+
+The degradation path is still there and still honest, and was observed on the way:
+without a provider the page shows the video, its channel, duration and link with
+"Прохождение нашлось, но прочитать субтитры не удалось" and no AI text at all.
 
 ## Additional part 2 — real-time monitoring
 
