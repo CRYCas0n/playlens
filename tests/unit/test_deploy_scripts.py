@@ -215,6 +215,32 @@ class TestTheyAgreeWithTheRepository:
             api = overlay.get("services", {}).get("api", {})
             assert "ports" not in api, f"{name} adds a second binding for the api"
 
+    def test_no_cpu_limit_exceeds_a_single_core(self):
+        """Docker refuses outright: "range of CPUs is from 0.01 to 1.00, as there are
+        only 1 CPUs available". The overlay asked for 1.5 and the api would not start on
+        a one-core host, which is the size of host this is most likely to meet. Defaults
+        must fit the smallest machine; a bigger one raises them with the variables."""
+        import re as _re
+
+        text = (ROOT / "docker-compose.prod.yml").read_text(encoding="utf-8")
+        for default in _re.findall(r'cpus:\s*"\$\{[A-Z_]+:-([0-9.]+)\}"', text):
+            assert float(default) <= 1.0, f"default cpus {default} will not start on 1 core"
+        assert not _re.search(r'cpus:\s*"[0-9.]+"', text), "a cpus limit is hardcoded"
+
+    def test_memory_limits_fit_a_small_host(self):
+        """Limits are ceilings, not reservations, but four containers whose ceilings sum
+        past the machine's RAM will still OOM together under load -- on a box that is
+        also running someone else's containers."""
+        import re as _re
+
+        text = (ROOT / "docker-compose.prod.yml").read_text(encoding="utf-8")
+        megabytes = [
+            int(v) * (1024 if unit.upper() == "G" else 1)
+            for v, unit in _re.findall(r"memory:\s*\$\{[A-Z_]+:-([0-9]+)([MG])\}", text)
+        ]
+        assert megabytes, "no parameterised memory limits found"
+        assert sum(megabytes) <= 2560, f"defaults sum to {sum(megabytes)} MB"
+
     def test_the_healthcheck_probes_the_port_the_entrypoint_binds(self):
         """These disagreed: a $PORT the entrypoint honoured, a literal 8000 the
         healthcheck probed. The api would never report healthy, and both the worker and

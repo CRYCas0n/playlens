@@ -14,7 +14,11 @@
 #   * secrets come from the environment, never from a literal, and every one of them is
 #     required rather than defaulted;
 #   * restart policies, so a reboot brings the stack back;
-#   * resource limits, so one runaway worker cannot take the host down with it;
+#   * resource limits, so one runaway worker cannot take the host down with it. They are
+#     ceilings rather than reservations, and every one of them is a variable: the
+#     defaults are sized for the smallest host worth deploying on -- one core, 3 GB, with
+#     other people's containers already on it -- because a default that refuses to start
+#     is not a safe default. Docker rejects a `cpus` above the core count outright;
 #   * log rotation, because JSON logs at this volume fill a disk in weeks.
 
 name: playlens
@@ -41,7 +45,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: ${POSTGRES_MEMORY:-768M}
     logging: &logging
       driver: json-file
       options:
@@ -67,8 +71,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.5"
-          memory: 1G
+          cpus: "${API_CPUS:-0.75}"
+          memory: ${API_MEMORY:-768M}
     logging: *logging
 
   worker:
@@ -83,8 +87,8 @@ services:
       replicas: ${WORKER_REPLICAS:-2}
       resources:
         limits:
-          cpus: "1.0"
-          memory: 768M
+          cpus: "${WORKER_CPUS:-0.75}"
+          memory: ${WORKER_MEMORY:-640M}
     logging: *logging
 
   scheduler:
@@ -101,6 +105,6 @@ services:
       replicas: 1
       resources:
         limits:
-          cpus: "0.25"
-          memory: 256M
+          cpus: "${SCHEDULER_CPUS:-0.25}"
+          memory: ${SCHEDULER_MEMORY:-256M}
     logging: *logging
