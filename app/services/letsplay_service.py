@@ -23,7 +23,14 @@ from app.adapters.youtube.transcripts.base import TranscriptCascade
 from app.ai import prompts
 from app.ai.schemas import LetsPlayOut
 from app.config import Settings
-from app.domain.enums import Audience, SummaryStatus, TranscriptStatus
+from app.domain.enums import (
+    Audience,
+    ClaimSide,
+    ClaimType,
+    ClaimValidation,
+    SummaryStatus,
+    TranscriptStatus,
+)
 from app.domain.errors import BudgetExhausted, ProviderError
 from app.logging import get_logger
 from app.normalizers.text import sanitize_for_prompt, stable_fingerprint
@@ -311,15 +318,20 @@ class LetsPlayService:
         output: LetsPlayOut = result.value
         claims = [
             {
-                "side": "positive",
+                # The enums, not string literals. `claim_type` was written as
+                # "observation", which is not a ClaimType and never was: the check
+                # constraint refused every row, so no Let's Play summary could be saved
+                # at all. It went unnoticed because the chain that reaches this code was
+                # itself never joined up. A point drawn from a transcript is descriptive.
+                "side": ClaimSide.POSITIVE.value,
                 "aspect": point.aspect,
                 "claim": point.text,
-                "claim_type": "observation",
+                "claim_type": ClaimType.DESCRIPTIVE.value,
                 "evidence_refs": [],
                 # There is no per-claim evidence to validate against: the whole summary is
                 # grounded in one transcript, and that provenance is stated in the UI
                 # rather than implied by a citation count that does not exist.
-                "validation": "accepted",
+                "validation": ClaimValidation.ACCEPTED.value,
                 "validation_detail": "single-source transcript",
             }
             for point in output.points

@@ -1,13 +1,44 @@
 # Playlens
 
-[![repo](https://img.shields.io/badge/github-CRYCas0n%2Fplaylens-24292e)](https://github.com/CRYCas0n/playlens)
+**Live: <https://playlens.45.67.202.162.sslip.io>** · [repository](https://github.com/CRYCas0n/playlens)
 
 A game intelligence service built on Metacritic data. It answers one question a score
 cannot: **do critics and players agree, and if not, why not?**
 
+The site is in Russian; this document is in English, as is the codebase.
+
 Every number the interface shows is traceable to a stored review, every AI sentence is
 checked against cited evidence before anyone reads it, and every absence — no score, no
 summary, no video, nothing comparable — is stated rather than filled in.
+
+---
+
+## What is implemented
+
+| | |
+|---|---|
+| **Ingestion** | Hourly crawl at seven past, twenty games per run from New Releases and then the full listing sorted by date. One selection per UTC day, deduplicated by a unique constraint rather than by a check |
+| **Game data** | Title, cover, developer, description, release date, video link, and per-platform Metascore and Userscore. A missing score is never a zero and a real zero is never a blank ([ADR-002](docs/adr/ADR-002-score-value-model.md)) |
+| **Reviews** | Critic and player reviews in immutable versioned snapshots, so a summary can always be traced to the exact text it was written from |
+| **AI summaries** | Separate critic and player summaries. Every claim cites reviews by a stable reference and is discarded before publication if the citation does not support it — 91.6% of claims survive that check on live data |
+| **Verdict** | The sentence at the top of a game page is *arithmetic*, not model output, so it cannot contradict the numbers beside it ([ADR-012](docs/adr/ADR-012-derived-verdict.md)) |
+| **Catalogue** | Search, platform filters with live counts, sorting by either score or by the critic–player gap, and similar games with a stated reason where a real one exists |
+| **Let's Play** *(additional part 1)* | YouTube search, explainable ranking, selection, a transcript cascade with fallbacks, and a spoiler-free AI conclusion drawn from the transcript rather than from reviews |
+| **Monitoring** *(additional part 2)* | Worker and scheduler state, the current job, 24-hour counters, AI spend against its ceiling, the queue, the problem log, and Run Now — updating live over SSE |
+
+Acceptance against the original assignment, row by row and judged against production
+rather than against the code: **[`docs/FINAL_TZ_ACCEPTANCE.md`](docs/FINAL_TZ_ACCEPTANCE.md)**.
+
+## Architecture in one paragraph
+
+FastAPI and server-rendered Jinja, PostgreSQL, and a job queue that is a table in that
+same database — `FOR UPDATE SKIP LOCKED`, no Redis and no Celery
+([ADR-003](docs/adr/ADR-003-job-queue.md)). Four containers: api, worker, scheduler,
+database. Correctness lives in constraints rather than in code that remembers to check:
+five partial unique indexes make a duplicate crawl, a duplicate summary and a second
+lead platform impossible to write. Live updates come from an append-only event table
+whose row id *is* the SSE `Last-Event-ID`, so a reconnecting browser resumes exactly
+where it stopped.
 
 ---
 
