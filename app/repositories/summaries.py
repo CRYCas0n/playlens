@@ -371,6 +371,22 @@ class GapRepository:
             )
         ).scalar_one_or_none()
 
+    def by_snapshots(
+        self,
+        *,
+        game_platform_id: int,
+        critic_snapshot_id: int | None,
+        user_snapshot_id: int | None,
+    ) -> GapExplanation | None:
+        """The row `uq_gap_snapshots` is about, whether or not it is the current one."""
+        return self.session.execute(
+            sa.select(GapExplanation).where(
+                GapExplanation.game_platform_id == game_platform_id,
+                GapExplanation.critic_snapshot_id == critic_snapshot_id,
+                GapExplanation.user_snapshot_id == user_snapshot_id,
+            )
+        ).scalar_one_or_none()
+
     def save(
         self,
         *,
@@ -385,6 +401,20 @@ class GapRepository:
         llm_model: str | None,
         prompt_version: str | None,
     ) -> GapExplanation:
+        # This pair of snapshots may already have an explanation that is not the current
+        # one -- a gap that was computed and found not worth publishing is stored with
+        # is_current=False, so `current()` cannot see it. A second job for the same pair
+        # then inserted the same key and uq_gap_snapshots refused it. Same shape as the
+        # skip records in SummaryService: the constraint is the guarantee, and the caller
+        # has to ask before writing rather than find out by failing.
+        existing = self.by_snapshots(
+            game_platform_id=game_platform_id,
+            critic_snapshot_id=critic_snapshot_id,
+            user_snapshot_id=user_snapshot_id,
+        )
+        if existing is not None:
+            return existing
+
         previous = self.current(game_platform_id)
         publishable = status is SummaryStatus.FRESH
         if publishable and previous is not None:

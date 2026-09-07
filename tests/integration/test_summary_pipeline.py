@@ -81,6 +81,38 @@ class TestThresholds:
         ).scalars().all()
         assert len(rows) == 1, f"the skip was recorded {len(rows)} times"
 
+    def test_explaining_the_same_gap_twice_is_not_an_error(
+        self, session_factory, db, load_harvest
+    ):
+        """`uq_gap_snapshots` refused a second explanation for one pair of snapshots.
+
+        A gap computed and found not worth publishing is stored with is_current=False,
+        so `current()` cannot see it, and the next job for the same pair inserted the
+        same key. The constraint is the guarantee; the caller has to ask before writing
+        rather than find out by failing.
+        """
+        from app.db.models import GapExplanation
+
+        game_id, gp_id = load_harvest("onimusha-way-of-the-sword", "playstation-5")
+
+        with UnitOfWork(session_factory) as uow:
+            for _ in range(3):
+                uow.gaps.save(
+                    game_id=game_id,
+                    game_platform_id=gp_id,
+                    critic_snapshot_id=None,
+                    user_snapshot_id=None,
+                    gap_points=12,
+                    explanation=None,
+                    evidence_refs=[],
+                    status=SummaryStatus.SKIPPED_NO_DATA,
+                    llm_model=None,
+                    prompt_version=None,
+                )
+
+        rows = db.execute(sa.select(GapExplanation)).scalars().all()
+        assert len(rows) == 1, f"the same gap was stored {len(rows)} times"
+
     def test_a_small_critic_corpus_still_produces_a_summary(
         self, session_factory, db, load_harvest
     ):
