@@ -34,6 +34,10 @@ COPY migrations ./migrations
 COPY app ./app
 COPY scripts ./scripts
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+# Do not trust the checkout's file mode. Git records one, but a clone made on Windows
+# hands over 0644 and the container then dies with "permission denied" on its own
+# entrypoint -- a failure that cannot happen on the machine the file was written on.
+RUN chmod 0755 /usr/local/bin/entrypoint.sh
 
 # Non-root. The application writes only to its cache directories, which are volumes.
 RUN useradd --create-home --uid 10001 playlens \

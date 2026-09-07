@@ -30,6 +30,28 @@ def test_the_deploy_directory_has_scripts():
     assert SCRIPTS, "deploy/ has no scripts"
 
 
+def test_every_shell_script_is_executable_in_git():
+    """The file mode git records, not the one on this filesystem.
+
+    Written on Windows, every script went into the index as 0644. The image copies the
+    entrypoint in and runs it, so the container died on its own entrypoint with
+    "permission denied" -- on the server, on the second deploy attempt, and never on the
+    machine the file was written on. `git update-index --chmod=+x` is the fix; this is
+    the guard.
+    """
+    import subprocess
+
+    out = subprocess.run(
+        ["git", "ls-files", "-s", "--", "*.sh"],
+        cwd=ROOT, capture_output=True, text=True, check=False,
+    )
+    if out.returncode != 0:
+        pytest.skip("not a git checkout")
+    for line in out.stdout.splitlines():
+        mode, _, path = line.split(maxsplit=2)
+        assert mode == "100755", f"{path.strip()} is {mode} in git, not executable"
+
+
 class TestNothingDestructiveIsWrittenDown:
     """Not a sandbox, so this is the whole defence: the dangerous forms are absent."""
 
