@@ -1,0 +1,120 @@
+name: CI
+
+# Every push and every pull request. Nothing is nightly-only: a check that runs on a
+# schedule is a check nobody sees fail until it has been failing for a week.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Not a secret: a value the tests need in order to construct Settings at all.
+  ADMIN_TOKEN: ci-token-0123456789abcdef0123456789
+  APP_ENV: test
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: python -m ruff check .
+
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      # No database, no network. If this is slow, something has leaked into it.
+      - run: python -m pytest tests/unit -q
+
+  integration:
+    runs-on: ubuntu-latest
+    # The dialect the service actually deploys on. Running integration tests only on
+    # SQLite would leave the partial indexes and SKIP LOCKED unexercised.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: playlens
+          POSTGRES_PASSWORD: playlens
+          POSTGRES_DB: playlens_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U playlens"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev,postgres]"
+      - name: Integration suite on PostgreSQL
+        env:
+          TEST_DATABASE_URL: postgresql+psycopg://playlens:playlens@localhost:5432/playlens_test
+        run: python -m pytest tests/integration -q
+
+  migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: playlens
+          POSTGRES_PASSWORD: playlens
+          POSTGRES_DB: playlens_mig
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U playlens"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://playlens:playlens@localhost:5432/playlens_mig
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev,postgres]"
+      # The round trip, not just the way up: a rollback discovered to be broken during
+      # an incident is worse than one nobody promised.
+      - run: python -m alembic upgrade head
+      - run: python -m alembic downgrade base
+      - run: python -m alembic upgrade head
+      - name: The assembled app boots and answers on every route
+        run: python -m scripts.smoke
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: Known vulnerabilities in dependencies
+        # Advisory, not blocking: a CVE published this morning in a transitive dependency
+        # should tell us, not stop a deploy that fixes something else.
+        continue-on-error: true
+        run: |
+          pip install pip-audit
+          pip-audit --skip-editable
+      - name: No secrets committed
+        run: python -m pytest tests/unit/test_no_dead_settings.py tests/unit/test_env_example.py -q
+      - name: Threat model assertions
+        run: python -m pytest tests/integration/test_security.py -q
