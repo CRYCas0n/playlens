@@ -81,6 +81,31 @@ def test_the_detector_would_catch_a_regression():
         assert english_phrases(probe), "the detector does not detect anything"
 
 
+def test_the_score_chip_cannot_wrap():
+    """It is a flex item beside a heading, with a fixed 26px box. Allowed to shrink, its
+    text went to a second line while the border stayed on the first — visible the moment
+    a Russian heading ran long enough to squeeze it."""
+    import re as _re
+    from pathlib import Path
+
+    css = (
+        Path(__file__).resolve().parents[2] / "app" / "web" / "static" / "app.css"
+    ).read_text(encoding="utf-8")
+    rule = _re.search(r"\.score-chip\s*\{([^}]*)\}", css, _re.S)
+    assert rule, "no .score-chip rule"
+    assert "nowrap" in rule.group(1)
+    assert "flex: none" in rule.group(1)
+
+
+def test_the_similarity_reasons_are_russian():
+    """Chips on a page, not values in the database: nothing keys off these strings."""
+    from app.services.similarity_service import SimilarityService
+
+    source = __import__("inspect").getsource(SimilarityService.reason_for)
+    for english in ("Same series", "Same studio", "Similar genre", "Praised for"):
+        assert english not in source, english
+
+
 def test_the_copy_a_reader_sees_from_python_is_russian():
     """Verdict lines, tier labels and the empty-section notes are Python constants."""
     from app.ai.validator import empty_section_note

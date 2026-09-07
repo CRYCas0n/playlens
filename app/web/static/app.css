@@ -286,6 +286,11 @@ ul, ol { padding: 0; list-style: none; }
 .score-chip {
   display: inline-flex; align-items: center; gap: var(--sp-3);
   height: 26px; padding-inline: var(--sp-4);
+  /* Never wrap and never shrink. The chip is a flex item next to a heading, and the box
+     is a fixed 26px: let it narrow and the text goes to a second line while the border
+     stays on the first, which is what a long Russian heading did to it. A score is two
+     short tokens -- it has no business breaking. */
+  white-space: nowrap; flex: none;
   background: var(--cb); border: 1px solid var(--cbd); border-radius: var(--r-sm);
   color: var(--ct);
   font-family: var(--font-display); font-weight: 700; font-size: var(--fs-score-xs);
@@ -575,7 +580,7 @@ ul, ol { padding: 0; list-style: none; }
 
 .summary { display: flex; flex-direction: column; }
 .summary__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-6); padding-bottom: var(--sp-6); border-bottom: 1px solid var(--border-subtle); }
-.summary__who { display: flex; flex-direction: column; gap: var(--sp-3); }
+.summary__who { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
 .summary__eyebrow, .spotlight__eyebrow { font-size: var(--fs-label-sm); font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-muted); }
 .summary__consensus { font-size: var(--fs-body-lg); line-height: 1.62; color: var(--text-secondary); margin-top: var(--sp-7); }
 .summary__consensus strong { color: var(--text-primary); font-weight: 600; }

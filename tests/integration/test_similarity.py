@@ -129,7 +129,7 @@ class TestScoring:
             published = service.recompute(uow, a.id)
         assert published == 1
         row = db.execute(sa.select(SimilarGame)).scalars().one()
-        assert row.reason == "Same series"
+        assert row.reason == "Та же серия"
         assert row.score > 0.5
 
     def test_unrelated_genres_score_low(self, session_factory, db, make_game):
@@ -153,7 +153,7 @@ class TestScoring:
         with UnitOfWork(session_factory) as uow:
             service.recompute(uow, a.id)
         row = db.execute(sa.select(SimilarGame)).scalars().one()
-        assert row.reason == "Same studio"
+        assert row.reason == "Та же студия"
 
     def test_a_dlc_is_penalised_below_a_genuine_peer(self, session_factory, db, make_game):
         base = make_game(
@@ -234,7 +234,7 @@ class TestReasons:
 
         service = SimilarityService(settings())
         strong = Components(metadata=0.4, aspect=0.8, lexical=0.3)
-        assert service.reason_for(strong) == "Praised for similar things"
+        assert service.reason_for(strong) == "Хвалят за то же самое"
 
 
 class TestColdStart:

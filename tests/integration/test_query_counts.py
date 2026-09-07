@@ -113,7 +113,7 @@ def catalogue(db):
                 rank=rank,
                 method="hybrid",
                 components={"metadata": 0.5},
-                reason="Same studio",
+                reason="Та же студия",
             )
         )
     db.commit()

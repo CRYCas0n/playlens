@@ -198,18 +198,21 @@ class SimilarityService:
         Each branch names a real, checkable fact about the pair. If no component is strong
         enough to name, the chip is simply absent — which the design treats as a normal
         card shape, not a gap.
+
+        Russian, because this is a chip on a page rather than a value in the database.
+        Nothing keys off these strings; the components decide, and the words only report.
         """
         floor = self._settings.reason_min_contribution
         if components.franchise >= 0.9:
-            return "Same series"
+            return "Та же серия"
         if components.company >= 1.0:
-            return "Same studio"
+            return "Та же студия"
         if components.genre >= 0.6:
-            return "Similar genre and tone"
+            return "Близкий жанр и настроение"
         if components.aspect is not None and components.aspect >= 0.75:
-            return "Praised for similar things"
+            return "Хвалят за то же самое"
         if components.score >= 0.9 and components.metadata >= floor:
-            return "Similar critic reception"
+            return "Похожий приём у критиков"
         return None
 
     # ------------------------------------------------------------------ orchestration
