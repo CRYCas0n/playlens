@@ -237,6 +237,18 @@ class TestTheyAgreeWithTheRepository:
             api = overlay.get("services", {}).get("api", {})
             assert "ports" not in api, f"{name} adds a second binding for the api"
 
+    def test_every_application_service_reads_the_whole_env_file(self):
+        """A hand-kept list of variables is a list that will be short.
+
+        LLM_PROVIDER=openai was in .env and in no `environment:` block, so the worker
+        used the default provider -- anthropic -- and failed every summary with "the
+        'anthropic' package is not installed", while holding a working OpenAI key. The
+        setting existed, was correct, and never arrived."""
+        yaml = pytest.importorskip("yaml")
+        base = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
+        for role in ("api", "worker", "scheduler"):
+            assert "env_file" in base["services"][role], f"{role} reads only a subset"
+
     def test_only_the_api_carries_the_http_healthcheck(self):
         """The image defines one healthcheck -- an HTTP GET -- and all three roles share
         the image. The worker and the scheduler do not serve HTTP, so they inherited a

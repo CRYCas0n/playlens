@@ -232,7 +232,13 @@ class GameSyncService:
                 idempotency_key=key,
                 queue="enrich",
                 game_id=game_id,
-                payload={"slug": slug},
+                # game_id belongs in the payload as well as the column. Every handler
+                # downstream reads payload["game_id"]; the column is how the job is
+                # indexed, not how it is read. Sending only the slug meant every
+                # follow-up this method queued died with KeyError and took its retries
+                # with it -- reviews, similarity and YouTube all silently dead behind a
+                # crawl that reported success.
+                payload={"slug": slug, "game_id": game_id},
                 **extra,  # type: ignore[arg-type]
             ).created:
                 queued.append(job_type)

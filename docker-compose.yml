@@ -33,6 +33,14 @@ services:
     build:
       context: .
       dockerfile: docker/backend.Dockerfile
+    # The whole .env, not a hand-kept subset. Listing variables one by one is how
+    # LLM_PROVIDER=openai sat in .env while the worker used the default -- anthropic --
+    # and every summary died with "the 'anthropic' package is not installed", holding an
+    # OpenAI key the entire time. `environment:` below still wins where it is set, which
+    # is what keeps DATABASE_URL and ROLE authoritative.
+    env_file:
+      - path: .env
+        required: false
     environment:
       ROLE: api
       DATABASE_URL: postgresql+psycopg://playlens:playlens@postgres:5432/playlens
@@ -60,6 +68,14 @@ services:
     build:
       context: .
       dockerfile: docker/backend.Dockerfile
+    # The whole .env, not a hand-kept subset. Listing variables one by one is how
+    # LLM_PROVIDER=openai sat in .env while the worker used the default -- anthropic --
+    # and every summary died with "the 'anthropic' package is not installed", holding an
+    # OpenAI key the entire time. `environment:` below still wins where it is set, which
+    # is what keeps DATABASE_URL and ROLE authoritative.
+    env_file:
+      - path: .env
+        required: false
     environment:
       ROLE: worker
       DATABASE_URL: postgresql+psycopg://playlens:playlens@postgres:5432/playlens
@@ -88,6 +104,14 @@ services:
     build:
       context: .
       dockerfile: docker/backend.Dockerfile
+    # The whole .env, not a hand-kept subset. Listing variables one by one is how
+    # LLM_PROVIDER=openai sat in .env while the worker used the default -- anthropic --
+    # and every summary died with "the 'anthropic' package is not installed", holding an
+    # OpenAI key the entire time. `environment:` below still wins where it is set, which
+    # is what keeps DATABASE_URL and ROLE authoritative.
+    env_file:
+      - path: .env
+        required: false
     environment:
       ROLE: scheduler
       DATABASE_URL: postgresql+psycopg://playlens:playlens@postgres:5432/playlens
