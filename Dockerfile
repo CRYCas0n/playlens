@@ -35,7 +35,7 @@ RUN apt-get update \
 # Dependencies before code: a one-line change should not re-download the tree.
 COPY --chown=playlens:playlens pyproject.toml README.md ./
 RUN pip install --upgrade pip \
-    && pip install "psycopg[binary]>=3.2" "Pillow>=10.0" \
+    && pip install "psycopg[binary]>=3.2" "Pillow>=10.0" "yt-dlp>=2024.8" \
     && python - <<'PY'
 import subprocess, tomllib
 with open("pyproject.toml", "rb") as fh:

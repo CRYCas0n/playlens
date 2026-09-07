@@ -21,7 +21,7 @@ RUN apt-get update \
 # this ordering is what keeps a code-only rebuild off the network.
 COPY pyproject.toml README.md ./
 RUN pip install --upgrade pip \
-    && pip install "psycopg[binary]>=3.2" \
+    && pip install "psycopg[binary]>=3.2" "yt-dlp>=2024.8" \
     && python - <<'PY'
 import tomllib, subprocess
 with open("pyproject.toml", "rb") as fh:

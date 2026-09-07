@@ -270,3 +270,29 @@ class TestTheAllInOneModule:
         source = (ROOT / "app" / "allinone.py").read_text(encoding="utf-8")
         assert "compromise" in source.lower()
         assert "docker-compose.prod.yml" in source
+
+
+def test_the_images_carry_the_transcript_provider():
+    """A shipped feature has to have its dependency in the image that runs it.
+
+    yt-dlp is the first provider in the transcript cascade, and it was in no image. The
+    cascade behaved correctly -- it reported the provider "disabled" and fell through --
+    so nothing failed and nothing said why: the Let's Play feature ran its search, ranked
+    2,285 videos in production and could never read one of them.
+
+    Both images, because the single-container mode runs the same worker.
+    """
+    for name in ("docker/backend.Dockerfile", "Dockerfile"):
+        body = (ROOT / name).read_text(encoding="utf-8")
+        assert "yt-dlp" in body, f"{name} cannot fetch a transcript"
+
+
+def test_every_optional_dependency_a_default_feature_needs_is_installed():
+    """`YT_TRANSCRIPT_PROVIDERS` lists ytdlp first by default, so it is not optional in
+    practice however it is packaged."""
+    from app.config import Settings
+
+    defaults = Settings(admin_token="t" * 32).yt_transcript_providers
+    if "ytdlp" in defaults:
+        for name in ("docker/backend.Dockerfile", "Dockerfile"):
+            assert "yt-dlp" in (ROOT / name).read_text(encoding="utf-8"), name
