@@ -207,11 +207,18 @@ translation of a term of art.
 python -m app.cli summarise --all
 ```
 
-Changing a prompt is not enough on its own. A summary's fingerprint includes the prompt
-version, so bumping `PROMPT_VERSION_CRITIC` / `_USER` marks every summary stale — but
-nothing *enqueues* the rewrite. `summary.generate` is queued by `reviews.sync`, which runs
-only when the reviews change, so a game nobody reviews again keeps its old summary
-indefinitely. Bump the version **and** run the command.
+Changing a prompt is not enough on its own, for two separate reasons that both had to be
+fixed before this worked:
+
+1. Nothing *enqueues* the rewrite. `summary.generate` is queued by `reviews.sync`, which
+   runs only when the reviews change, so a game nobody reviews again is never asked.
+2. Until `recipe_changed` existed, nothing *decided* to rewrite either. Every staleness
+   check asked whether the reviews had moved; none asked whether the prompt or the model
+   had. A queued job would run, find the reviews unchanged, and report success having
+   left the old summary in place.
+
+So: bump the version **and** run the command. The command keys by date, so a run stopped
+by the daily cost ceiling is resumed by running it again tomorrow.
 
 It queues rather than generates, so it cannot race the worker, and the enqueue key carries
 the prompt version: running it twice is free. The worker drains the queue one job at a
