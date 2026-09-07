@@ -201,6 +201,24 @@ Genres need neither: they are a table in `app/domain/genre_names.py`. A genre th
 has not met shows the source's own name, which is a small blemish rather than an invented
 translation of a term of art.
 
+### Recompute the "why these are similar" chips
+
+The reason on a similar-game chip is **stored** when similarity is computed, not derived
+when the page renders. Changing `reason_for` therefore reaches new rows only; the existing
+ones keep whatever words they were written with. It is arithmetic, so a recompute costs
+nothing but time:
+
+```bash
+sed -i 's/^SIMILARITY_REFRESH_STALE_DAYS=.*/SIMILARITY_REFRESH_STALE_DAYS=0/' .env
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d worker
+#   enqueue one similarity.refresh_stale job; it fans out to every game
+sed -i 's/^SIMILARITY_REFRESH_STALE_DAYS=.*/SIMILARITY_REFRESH_STALE_DAYS=7/' .env
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d worker
+```
+
+Zero days means "everything is stale", which is exactly what a changed rule needs. Put the
+value back afterwards or the scheduler recomputes the whole catalogue nightly for nothing.
+
 ### Rewrite every summary after a prompt change
 
 ```bash
