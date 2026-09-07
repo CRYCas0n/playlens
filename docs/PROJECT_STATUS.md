@@ -34,7 +34,7 @@ Statuses mean one thing each:
 | **AI — OpenAI** | VERIFIED | 26 offline tests plus live calls. Full lifecycle: 401, 404, 429, 5xx, timeout, malformed JSON, prose instead of a call, unknown enum |
 | **AI — Anthropic** | IMPLEMENTED — NOT VERIFIED | No Anthropic key. Same protocol the OpenAI adapter now exercises for real |
 | **AI — Release 0, 20 games** | VERIFIED | gpt-4o: **PV1 85.7%**, PV2 100%, $0.015/game. gpt-4o-mini: PV1 78.2%, below target. `docs/RELEASE0_FINAL.md` |
-| **AI — Russian claims** | IMPLEMENTED — PARTLY VERIFIED | The model returns the English claim (validated, as Release 0 measured) and its Russian rendering (displayed). Regeneration of the existing catalogue is paced by the $5/day ceiling |
+| **AI — Russian claims** | VERIFIED | Live: claims, headings and overall paragraphs in Russian on the site, evidence counts declined correctly (`3 рецензии`). 278 summaries queued for rewriting, draining at one per job against a $5/day ceiling — older ones show the verified English until their turn |
 | **AI — in production** | VERIFIED | 48 live calls, $0.51 of a $5/day ceiling, 233 claims accepted and **27 rejected by evidence validation** — 89.6% acceptance on real reviews |
 | **AI — evidence validation** | VERIFIED | 42 rejections on real data across 6 classes; 7 invented references caught, 0 published |
 | **AI — cost ceiling** | VERIFIED | Enforced before the call, not after. 9 tests |

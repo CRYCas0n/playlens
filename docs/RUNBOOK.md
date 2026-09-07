@@ -166,6 +166,23 @@ curl -X POST localhost:8000/api/v1/admin/jobs/<id>/retry -H "X-Admin-Token: $ADM
 Look at `error_message` first. A job that died five times usually has a real cause, and
 retrying it a sixth time is how you spend an afternoon.
 
+### Rewrite every summary after a prompt change
+
+```bash
+python -m app.cli summarise --all
+```
+
+Changing a prompt is not enough on its own. A summary's fingerprint includes the prompt
+version, so bumping `PROMPT_VERSION_CRITIC` / `_USER` marks every summary stale — but
+nothing *enqueues* the rewrite. `summary.generate` is queued by `reviews.sync`, which runs
+only when the reviews change, so a game nobody reviews again keeps its old summary
+indefinitely. Bump the version **and** run the command.
+
+It queues rather than generates, so it cannot race the worker, and the enqueue key carries
+the prompt version: running it twice is free. The worker drains the queue one job at a
+time and stops for the day at `AI_DAILY_COST_LIMIT_USD`, resuming the next day. A
+catalogue of 100 games is about 200 jobs and roughly $3 at gpt-4o.
+
 ### Roll back a bad summary batch
 
 Summaries are versioned and only a `fresh` one becomes current. To revert a game to its

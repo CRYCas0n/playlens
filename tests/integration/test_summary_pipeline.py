@@ -50,6 +50,37 @@ class TestThresholds:
         assert outcome.reason == SkipReason.BELOW_THRESHOLD.value
         assert llm.calls == 0, "no money is spent below the threshold"
 
+    def test_skipping_twice_is_not_an_error(self, session_factory, db, load_harvest):
+        """Two jobs for the same thin corpus must not collide on the fingerprint.
+
+        Below the threshold there is no snapshot and so no fingerprint, and the skip row
+        is written under a constant one per (platform, audience). `should_generate`
+        returns before computing a fingerprint in that case, so its by_fingerprint guard
+        never sees that row, and the row is written with is_current=False, so the
+        `current()` check does not see it either. A second job therefore inserted the same
+        key again.
+
+        In production that was 119 dead jobs in two minutes, six attempts each, none of
+        which reached a model. Recording "there was nothing to summarise" twice is the
+        same fact, not a failure.
+        """
+        game_id, gp_id = load_harvest("onimusha-way-of-the-sword", "playstation-5")
+        service = SummaryService(FixtureLLMProvider(), settings())
+
+        for _ in range(3):
+            with UnitOfWork(session_factory) as uow:
+                outcome = service.generate(
+                    uow, game_id=game_id, game_platform_id=gp_id, audience=Audience.USER
+                )
+            assert outcome.status is SummaryStatus.SKIPPED_NO_DATA
+
+        rows = db.execute(
+            sa.select(Summary).where(
+                Summary.game_platform_id == gp_id, Summary.audience == "user"
+            )
+        ).scalars().all()
+        assert len(rows) == 1, f"the skip was recorded {len(rows)} times"
+
     def test_a_small_critic_corpus_still_produces_a_summary(
         self, session_factory, db, load_harvest
     ):

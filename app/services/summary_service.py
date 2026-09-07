@@ -508,14 +508,33 @@ class SummaryService:
         )
         if existing is not None:
             return  # never demote a good summary because the corpus shrank
+
+        # Below the threshold there is no snapshot and therefore no fingerprint, so the
+        # one written here is a constant per (platform, audience). `should_generate`
+        # returns before computing a fingerprint in that case, so its by_fingerprint
+        # guard never sees this row -- and the row is written with is_current=False, so
+        # the `current()` check above does not see it either. A second job for the same
+        # pair therefore arrived here and inserted the same key twice.
+        #
+        # That is what uq_summary_fingerprint refused, 119 times in two minutes, six
+        # attempts each, all of them before any model call. Recording "there was nothing
+        # to summarise" twice is not an error worth failing a job over: it is the same
+        # fact, already recorded.
+        fingerprint = decision.fingerprint or sha256_text(
+            f"skip:{game_platform_id}:{audience.value}"
+        )
+        if uow.summaries.by_fingerprint(
+            game_platform_id=game_platform_id, audience=audience, fingerprint=fingerprint
+        ):
+            return
+
         uow.summaries.save(
             game_id=game_id,
             game_platform_id=game_platform_id,
             audience=audience,
             snapshot_id=decision.snapshot.snapshot_id if decision.snapshot else None,
             status=SummaryStatus.SKIPPED_NO_DATA,
-            input_fingerprint=decision.fingerprint
-            or sha256_text(f"skip:{game_platform_id}:{audience.value}"),
+            input_fingerprint=fingerprint,
             claims=[],
             reviews_used=decision.snapshot.review_count if decision.snapshot else 0,
             reviews_candidates=decision.snapshot.candidate_count if decision.snapshot else 0,

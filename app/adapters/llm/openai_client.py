@@ -186,6 +186,20 @@ class OpenAILLMProvider:
         except Exception:
             detail = response.text[:300]
 
+        # A 429 that says the *request* is too large is not a rate limit that waiting
+        # fixes: the request exceeds the account's per-minute token allowance on its own,
+        # so every retry costs a round trip and fails identically. Production burned six
+        # attempts per job on exactly this, on the games with the largest corpora --
+        # which are the ones most worth summarising.
+        #
+        # The fix is AI_MAX_INPUT_TOKENS, and the message says so, because the number
+        # to change is not discoverable from "429".
+        if status == 429 and "too large" in detail.lower():
+            return PermanentError(
+                f"openai refused the request as too large for the account's per-minute "
+                f"token limit: {detail}. Lower AI_MAX_INPUT_TOKENS below that limit "
+                f"(leaving room for LLM_MAX_OUTPUT_TOKENS) -- retrying cannot help."
+            )
         if status in RETRYABLE_STATUS:
             return RetryableError(f"openai returned {status}: {detail}")
         if status == 401:

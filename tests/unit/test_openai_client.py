@@ -206,6 +206,34 @@ class TestWhenItGoesWrong:
                 prompt=PROMPT, schema=SummaryOut, max_tokens=1000
             )
 
+    def test_a_request_too_large_for_the_account_is_permanent(self):
+        """A 429 is usually "wait"; this one is "this can never work".
+
+        Production hit it on the games with the largest corpora -- the ones most worth
+        summarising -- and burned six attempts on each. The request exceeded the
+        account's whole per-minute allowance, so every retry failed identically. The
+        message names the setting to change, because "429" does not.
+        """
+        detail = (
+            "Request too large for gpt-4o in organization org-X on tokens per min "
+            "(TPM): Limit 30000, Requested 41200"
+        )
+        handler = lambda r: httpx.Response(429, json={"error": {"message": detail}})  # noqa: E731
+        with pytest.raises(PermanentError) as caught:
+            provider(handler).complete_structured(
+                prompt=PROMPT, schema=SummaryOut, max_tokens=1000
+            )
+        assert "AI_MAX_INPUT_TOKENS" in str(caught.value)
+
+    def test_an_ordinary_rate_limit_is_still_retryable(self):
+        """The narrow case must not swallow the common one."""
+        detail = "Rate limit reached for gpt-4o. Please try again in 1s."
+        handler = lambda r: httpx.Response(429, json={"error": {"message": detail}})  # noqa: E731
+        with pytest.raises(RetryableError):
+            provider(handler).complete_structured(
+                prompt=PROMPT, schema=SummaryOut, max_tokens=1000
+            )
+
     def test_a_network_error_is_retryable(self):
         def handler(request):
             raise httpx.ConnectError("connection refused")
