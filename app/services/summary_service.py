@@ -286,8 +286,15 @@ class SummaryService:
             over = self.over_budget(uow)
             if over is not None:
                 # Deferred, not failed, and NOT recorded as a summary: the game keeps the
-                # summary it already has and the job retries tomorrow. A cost ceiling that
-                # only appears on a dashboard is not a ceiling.
+                # summary it already has. A cost ceiling that only appears on a dashboard
+                # is not a ceiling.
+                #
+                # This returns rather than raising, so the JOB completes -- successfully,
+                # having done nothing. Whatever enqueued it must therefore be able to
+                # enqueue it again: `reviews.sync` keys by date and does, and so does
+                # `app.cli summarise --all`. A caller that keys by anything permanent
+                # spends its key here and never gets another turn, which is how half a
+                # catalogue kept its old summaries after a prompt change.
                 uow.events.emit(
                     "ai.budget_exhausted",
                     level="warning",

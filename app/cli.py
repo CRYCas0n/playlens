@@ -211,9 +211,15 @@ def cmd_summarise(args: argparse.Namespace) -> int:
     # once per invocation -- running this twice is free.
     from app.domain.enums import Audience
 
+    # The key carries the DATE, not the prompt version. A job that reaches the daily cost
+    # ceiling returns "budget_exhausted" and is marked succeeded having done nothing --
+    # so a key naming the prompt version was spent permanently, and half the catalogue
+    # kept its old summaries with no way to ask again. Keyed by date, the command is
+    # idempotent within a day and repeatable across days, which is exactly how a daily
+    # ceiling is supposed to be worked through.
     queued = 0
     with container.uow() as uow:
-        version = container.settings.params_version
+        today = dt.date.today().isoformat()
         for slug in sorted(uow.games.known_slugs())[: args.limit]:
             game = uow.games.get_by_slug(slug)
             if game is None:
@@ -222,14 +228,9 @@ def cmd_summarise(args: argparse.Namespace) -> int:
             if lead is None:
                 continue
             for audience in (Audience.CRITIC, Audience.USER):
-                prompt_version = (
-                    container.settings.prompt_version_critic
-                    if audience is Audience.CRITIC
-                    else container.settings.prompt_version_user
-                )
                 if uow.jobs.enqueue(
                     job_type="summary.generate",
-                    idempotency_key=f"summary:{lead.id}:{audience.value}:{prompt_version}:{version}",
+                    idempotency_key=f"summary:{lead.id}:{audience.value}:refresh:{today}",
                     queue="ai",
                     game_id=game.id,
                     payload={
