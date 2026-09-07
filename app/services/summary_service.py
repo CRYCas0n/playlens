@@ -53,6 +53,7 @@ class GenerateReason(StrEnum):
     SCORE_MOVED = "score_moved"
     RETRY_AFTER_FAILURE = "retry_after_failure"
     STALENESS = "staleness"
+    RECIPE_CHANGED = "recipe_changed"
 
 
 @dataclass(frozen=True, slots=True)
@@ -187,6 +188,19 @@ class SummaryService:
             return Decision(
                 True, GenerateReason.RETRY_AFTER_FAILURE.value, snapshot, fingerprint
             )
+
+        # The fingerprint is snapshot + prompt version + model + params. Every check below
+        # this point asks whether the REVIEWS changed; none of them asks whether the way
+        # we summarise them did. So bumping a prompt version marked nothing stale in
+        # practice: the reviews had not moved, "not_enough_change" won, and the summary
+        # stayed exactly as the old prompt wrote it.
+        #
+        # That is what the fingerprint is for. If the current summary was made from a
+        # different recipe than the one we would use now, it is out of date by definition
+        # -- not because the game changed, but because we did.
+        recipe_now = (self._prompt_version(audience), self._llm.model)
+        if (current.prompt_version, current.llm_model) != recipe_now:
+            return Decision(True, GenerateReason.RECIPE_CHANGED.value, snapshot, fingerprint)
 
         new_reviews = snapshot.review_count
         if current.snapshot_id is not None:

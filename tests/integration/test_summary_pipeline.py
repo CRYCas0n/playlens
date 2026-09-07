@@ -144,6 +144,60 @@ class TestThresholds:
         assert row.reviews_candidates >= row.reviews_used
 
 
+class TestARecipeChange:
+    """Changing the prompt has to reach summaries that already exist.
+
+    It did not. The fingerprint includes the prompt version, but every staleness check
+    asked whether the *reviews* had changed; none asked whether the way we summarise them
+    had. So bumping a prompt version marked nothing stale in practice — "not enough
+    change" won, and half a production catalogue kept summaries written by the old
+    prompt, in the old language, while the queue reported every job successful.
+    """
+
+    def test_a_new_prompt_version_makes_the_current_summary_stale(
+        self, session_factory, db, load_harvest
+    ):
+        game_id, gp_id = load_harvest("elden-ring", "playstation-5")
+        first = settings()
+        with UnitOfWork(session_factory) as uow:
+            SummaryService(FixtureLLMProvider(), first).generate(
+                uow, game_id=game_id, game_platform_id=gp_id, audience=Audience.CRITIC
+            )
+
+        # Same reviews, same everything -- except the prompt.
+        with UnitOfWork(session_factory) as uow:
+            decision = SummaryService(FixtureLLMProvider(), first).should_generate(
+                uow, game_id=game_id, game_platform_id=gp_id, audience=Audience.CRITIC
+            )
+        assert not decision.generate, "nothing changed, so nothing should regenerate"
+
+        bumped = settings(prompt_version_critic="critic-v99")
+        with UnitOfWork(session_factory) as uow:
+            decision = SummaryService(FixtureLLMProvider(), bumped).should_generate(
+                uow, game_id=game_id, game_platform_id=gp_id, audience=Audience.CRITIC
+            )
+        assert decision.generate, "a new prompt version left the old summary in place"
+        assert decision.reason == "recipe_changed"
+
+    def test_a_different_model_makes_it_stale_too(
+        self, session_factory, db, load_harvest
+    ):
+        """The fingerprint counts the model, and so should the decision: the same prompt
+        against a different model is a different summary."""
+        game_id, gp_id = load_harvest("elden-ring", "playstation-5")
+        with UnitOfWork(session_factory) as uow:
+            SummaryService(FixtureLLMProvider("model-a"), settings()).generate(
+                uow, game_id=game_id, game_platform_id=gp_id, audience=Audience.CRITIC
+            )
+        with UnitOfWork(session_factory) as uow:
+            decision = SummaryService(
+                FixtureLLMProvider("model-b"), settings()
+            ).should_generate(
+                uow, game_id=game_id, game_platform_id=gp_id, audience=Audience.CRITIC
+            )
+        assert decision.generate and decision.reason == "recipe_changed"
+
+
 class TestEldenRingHasNothingToCriticise:
     """The finding that broke the 3+3 layout (C-06)."""
 
