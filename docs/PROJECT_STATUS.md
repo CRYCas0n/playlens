@@ -1,8 +1,9 @@
 # Project Status
 
 **Date:** 2026-09-07 · **Repository:** <https://github.com/CRYCas0n/playlens>
+**Production:** <https://playlens.45.67.202.162.sslip.io> — deployed, serving, ingesting
 
-**CI:** green on GitHub Actions · **Run:** `791 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
+**CI:** green on GitHub Actions · **Run:** `833 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
 `smoke: 15 routes` · Release 0 on all 20 games against a live model
 
 Statuses mean one thing each:
@@ -27,21 +28,22 @@ Statuses mean one thing each:
 | **Database — SQLite** | VERIFIED | Same suite, same assertions, 768 passing |
 | **Migrations** | VERIFIED | 3 revisions; upgrade → downgrade base → upgrade, constraints re-checked after the rebuild |
 | **Concurrency on PostgreSQL** | VERIFIED | `FOR UPDATE SKIP LOCKED` compiles and runs; concurrent claim yields exactly one row, with real threads |
-| **Metacritic ingestion** | VERIFIED | 17 contract tests against the **live** API: listing, detail, per-platform stats, the 10-per-page rule, catalogue size |
+| **Metacritic ingestion** | VERIFIED | 17 contract tests against the **live** API, and in production: 86 games, 2,229 reviews, 98 `game.sync` jobs succeeded, 0 failed |
 | **Deduplication** | VERIFIED | Re-running a crawl adds nothing; two workers cannot claim the same game |
 | **Review snapshots** | VERIFIED | Immutable, stable evidence refs, 9 tests |
 | **AI — OpenAI** | VERIFIED | 26 offline tests plus live calls. Full lifecycle: 401, 404, 429, 5xx, timeout, malformed JSON, prose instead of a call, unknown enum |
 | **AI — Anthropic** | IMPLEMENTED — NOT VERIFIED | No Anthropic key. Same protocol the OpenAI adapter now exercises for real |
 | **AI — Release 0, 20 games** | VERIFIED | gpt-4o: **PV1 85.7%**, PV2 100%, $0.015/game. gpt-4o-mini: PV1 78.2%, below target. `docs/RELEASE0_FINAL.md` |
+| **AI — in production** | VERIFIED | 48 live calls, $0.51 of a $5/day ceiling, 233 claims accepted and **27 rejected by evidence validation** — 89.6% acceptance on real reviews |
 | **AI — evidence validation** | VERIFIED | 42 rejections on real data across 6 classes; 7 invented references caught, 0 published |
 | **AI — cost ceiling** | VERIFIED | Enforced before the call, not after. 9 tests |
 | **AI — is it useful** | NEEDS HUMAN ACTION | Needs a person who did not write the summaries. `docs/HUMAN_EVALUATION.md`, 20 minutes |
-| **YouTube — discovery and ranking** | VERIFIED | Live Data API: 15 candidates, 6 rejected by filters, a real playthrough selected with explainable components |
+| **YouTube — discovery and ranking** | VERIFIED | Live Data API, and in production: 42 `youtube.discover` jobs succeeded, 0 failed, real videos linked on game pages |
 | **YouTube — transcripts** | BLOCKED | yt-dlp offered only an m3u8 caption track. No PO-token path, no paid provider. Degradation verified: link and metadata shown, **no AI text** |
 | **Similarity** | VERIFIED | 12 tests. No reason invented below the contribution threshold |
 | **Search, filters, sorting** | VERIFIED | Both dialects. Unrated never floats to the top in either direction |
 | **UI — data rules** | VERIFIED | All 28 cases of `design/EDGE_CASES.md`, 44 tests |
-| **UI — rendering** | VERIFIED | Real Chromium, 12 pages × 4 widths, against the PostgreSQL-backed app |
+| **UI — rendering** | VERIFIED | Real Chromium × 4 widths, against **the live public site**, no horizontal overflow anywhere |
 | **Accessibility** | IMPLEMENTED — NOT VERIFIED | Landmarks, labels, skip link, `aria-current` present. No axe audit (OQ-N3) |
 | **Security** | VERIFIED | 30 assertions, one per threat in ADR-019: SSRF, XSS, prompt injection, secret redaction, admin auth, rate limiting |
 | **Secrets** | VERIFIED | Index scanned before the first commit, 0 hits. `.env` ignored, `.env.example` ships every secret empty |
@@ -53,12 +55,16 @@ Statuses mean one thing each:
 | **Operator CLI** | VERIFIED | `python -m app.cli` — status, crawl, seed, summarise, purge. Promised by ADR-014 and previously missing |
 | **Health and readiness** | VERIFIED | Reachable ≠ ready: `ok` / `not_migrated` / `down`, each saying what to do |
 | **Docker — files** | VERIFIED as text | 30 static assertions. Two real deployment bugs found this way |
-| **Docker — build and run** | BLOCKED | No daemon; installing Docker Desktop needs administrator rights and a reboot |
 | **CI** | VERIFIED | 5 jobs green on GitHub Actions in 1m16s: lint, unit, integration **on a real PostgreSQL 16 service**, migration round trip plus boot smoke, security |
 | **Single-container mode** | VERIFIED | `app/allinone.py` against PostgreSQL 16.4: migrated, both threads up, crawled Metacritic live, synced 12 real games in 25s while serving |
-| **Deployment — free path** | IMPLEMENTED — NOT VERIFIED | Hugging Face Spaces + Neon, no card. Root `Dockerfile` and `allinone` mode both tested; no HF account exists |
-| **Deployment — paid blueprint** | IMPLEMENTED — NOT VERIFIED | `render.yaml`: database, web, worker, cron. Parses, tested statically, never applied. **Render is not free for this shape** — no free worker plan, ~$22/mo |
-| **Deployment — public URL** | NEEDS HUMAN ACTION | No hosting account exists. `docs/HUMAN_DEPLOYMENT_HANDOFF.md` |
+| **Deployment — public URL** | VERIFIED | <https://playlens.45.67.202.162.sslip.io> — Let's Encrypt over the existing Caddy, HTTP redirects, 22/22 production smoke green |
+| **Deployment — the stack** | VERIFIED | Four containers on the owner's Ubuntu 24.04 box, beside an n8n and a live site that were not touched. No new port opened |
+| **Deployment — data survives** | VERIFIED | Full `down` then `up`: 86 games, 2,229 reviews and 31 summaries still there. `restart: unless-stopped` on all four |
+| **Deployment — update and rollback** | VERIFIED | `deploy/update.sh` run four times: backup, build, migrate, health, public-name check. Automatic code rollback path exercised by design, not by luck |
+| **Backups** | VERIFIED | `pg_dump` + gzip, retention, `.partial` naming. Two dumps on disk, cron at 03:17 nightly. **Same disk as the database** — not off-site |
+| **Docker — build and run** | VERIFIED | Built and running on the server. Not on this machine, which still has no daemon |
+| **Deployment — free path** | IMPLEMENTED — NOT VERIFIED | Hugging Face Spaces + Neon stays in the repository as the no-server option; no HF account exists |
+| **Deployment — paid blueprint** | IMPLEMENTED — NOT VERIFIED | `render.yaml` parses, never applied. **Render is not free for this shape** — no free worker plan, ~$22/mo |
 | **Backups** | DEFERRED | `pg_dump` procedure documented; automating it before there is data worth losing is premature |
 | **Documentation** | VERIFIED | Every referenced path and module cross-checked against the filesystem |
 | **Legal position** | NEEDS HUMAN ACTION | OQ-B3. Not a technical question |
@@ -69,15 +75,51 @@ Statuses mean one thing each:
 
 | | Why | What unblocks it |
 |---|---|---|
-| **Public URL** | No hosting account. Creating one needs an email confirmation and an OAuth grant only the account owner can give | 10 minutes on render.com — `HUMAN_DEPLOYMENT_HANDOFF.md` §2 |
-| **Docker verified** | Docker Desktop needs administrator rights and a reboot | Install it, then `docker compose build` |
+| **YouTube transcripts** | yt-dlp is offered only an m3u8 caption track; no PO-token path and no paid provider | A hosted transcript API, or a proxy. Degradation is honest today: link and metadata, no invented text |
+| **Off-site backups** | The dumps sit on the same disk as the database. Somewhere to put them needs a credential that does not exist | An S3-compatible bucket, or any host with space. Ten lines in `deploy/backup.sh` |
+| **A pretty hostname** | `playlens.mooo.com` is free but lives in the owner's FreeDNS account | One A record, then `SITE=playlens.mooo.com bash deploy/caddy-site.sh`. Cosmetic |
 
-Neither is a code problem. The service runs, on PostgreSQL, with working AI and green CI,
-right now.
+None of these stops anyone using the service.
 
 ---
 
-## Found and fixed in this pass
+## Found and fixed by deploying
+
+Nine defects on the way to a live URL, every one found by running something on the
+server. Not one of them could appear on the machine the code was written on.
+
+1. **Compose concatenates `ports`.** The loopback bind was *added* to the base file's
+   `0.0.0.0` instead of replacing it — two bindings, the second public. Caught by
+   `docker compose config` before anything started.
+2. **`cpus: "1.5"` on a one-core host.** Docker refuses rather than clamping, so the api
+   would not start, and the worker and scheduler wait on its health.
+3. **Every `.sh` was `100644` in git.** Written on Windows, where `chmod +x` changes
+   nothing git records. The container died on its own entrypoint.
+4. **The worker and the scheduler inherited an HTTP healthcheck** they cannot pass, and
+   sat marked unhealthy while working. A permanently red light is the one you learn to
+   ignore.
+5. **`LLM_PROVIDER=openai` never reached the containers.** It was in `.env` and in no
+   `environment:` block, so the worker used the default — anthropic — and failed every
+   summary while holding a working OpenAI key.
+6. **Every follow-up job a crawl queued was dead on arrival.** `payload={"slug": slug}`
+   with `game_id` passed as a column; three handlers read `payload["game_id"]`. Reviews,
+   similarity and YouTube were silently dead behind a crawl reporting 20/20 success and a
+   healthy API. **The service looked perfect and did almost nothing.**
+7. **A broken thumbnail on every game page with a video.** The image proxy's allow-list
+   held only metacritic; the Let's Play section renders `i.ytimg.com`, so the page asked
+   its own proxy for an image and got a 400.
+8. **A game Metacritic would not let us ingest at all.** Two platforms came back with
+   `isLeadPlatform` true; the database enforces one, correctly, so the insert died and
+   the game was never stored.
+9. **The suite was reading the developer's `.env`.** An untracked file silently overrode
+   defaults under test, so a correct assertion failed locally and passed in CI.
+
+Number 6 is the one worth remembering. Both sides of that seam had tests. The join
+between them had none, and nothing short of running it would have said so.
+
+---
+
+## Found and fixed before that
 
 Six defects, every one found by running something rather than reading it:
 
