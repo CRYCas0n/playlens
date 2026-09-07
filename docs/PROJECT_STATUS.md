@@ -3,7 +3,7 @@
 **Date:** 2026-09-07 · **Repository:** <https://github.com/CRYCas0n/playlens>
 **Production:** <https://playlens.45.67.202.162.sslip.io> — deployed, serving, ingesting
 
-**CI:** green on GitHub Actions · **Run:** `985 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
+**CI:** green on GitHub Actions · **Run:** `986 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
 `smoke: 15 routes` · Release 0 on all 20 games against a live model
 
 Statuses mean one thing each:
@@ -81,7 +81,6 @@ Statuses mean one thing each:
 
 | | Why | What unblocks it |
 |---|---|---|
-| **YouTube transcripts** | yt-dlp is offered only an m3u8 caption track; no PO-token path and no paid provider | A hosted transcript API, or a proxy. Degradation is honest today: link and metadata, no invented text |
 | **Off-site backups** | The dumps sit on the same disk as the database. Somewhere to put them needs a credential that does not exist | An S3-compatible bucket, or any host with space. Ten lines in `deploy/backup.sh` |
 | **A pretty hostname** | `playlens.mooo.com` is free but lives in the owner's FreeDNS account | One A record, then `SITE=playlens.mooo.com bash deploy/caddy-site.sh`. Cosmetic |
 
