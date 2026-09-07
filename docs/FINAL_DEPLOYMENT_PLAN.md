@@ -386,6 +386,19 @@ one is invisible on the machine the code was written on.
     anything permanent never gets another turn — half the catalogue kept its old
     summaries while the queue read empty.
 
+15. **Changing the prompt never reached the summaries it was meant to change.** The
+    fingerprint contains the prompt version, but every staleness check asked whether the
+    reviews had moved and none asked whether the recipe had. Jobs ran, reported success,
+    and left the old summaries in place.
+16. **The model skipped the Russian field because it was optional.** Summaries
+    regenerated, cost money, and came back in the language they already were.
+17. **A length limit set for English discarded a correct Russian answer.** 704 characters
+    against a 700 limit, and the whole summary went with it.
+
+Fifteen through seventeen are one story told three times: a change of output language
+touches the schema, the staleness rules and every character budget, and each of them
+failed silently in a way that looked like success.
+
 The sixth is the serious one. The service looked completely healthy — green crawl, green
 API, games arriving — and did almost nothing. Both sides of that seam had tests; the join
 between them had none.
