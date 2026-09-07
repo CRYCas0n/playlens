@@ -43,7 +43,11 @@ USER playlens
 
 EXPOSE 8000
 
+# $PORT, not a literal 8000: the entrypoint binds ${PORT:-8000}, and a healthcheck
+# probing a different port reports the api unhealthy forever. The worker and the
+# scheduler wait on `service_healthy`, so the whole stack would sit there, with
+# nothing actually wrong.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD curl -fsS http://localhost:8000/api/v1/health || exit 1
+    CMD curl -fsS "http://localhost:${PORT:-8000}/api/v1/health" || exit 1
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
