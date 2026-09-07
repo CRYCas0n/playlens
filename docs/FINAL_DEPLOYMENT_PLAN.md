@@ -331,6 +331,34 @@ no code change.
 
 ---
 
+## What running it actually cost
+
+Six defects, every one found by running this on the server and none by any test that
+existed beforehand. They are listed because the pattern matters more than the list: each
+one is invisible on the machine the code was written on.
+
+1. **Compose concatenates `ports` across files.** The loopback bind was *added* to the
+   base file's `0.0.0.0` rather than replacing it — two bindings for one port, the
+   second of them public. Caught by `docker compose config` before anything started.
+2. **`cpus: "1.5"` on a one-core host.** Docker refuses rather than clamping, so the api
+   would not start, and the worker and scheduler wait on its health.
+3. **Every `.sh` was `100644` in git.** Written on Windows, where `chmod +x` changes
+   nothing git records. The container died on its own entrypoint.
+4. **The worker and the scheduler inherited an HTTP healthcheck** they can never pass,
+   and sat marked unhealthy while working perfectly.
+5. **`LLM_PROVIDER=openai` never reached the containers.** It was in `.env` and in no
+   `environment:` block, so the worker used the default — anthropic — and failed every
+   summary while holding a working OpenAI key.
+6. **Every follow-up job a crawl queued was dead on arrival.** `payload={"slug": slug}`
+   with `game_id` passed as a column; three handlers read `payload["game_id"]`. Reviews,
+   similarity and YouTube were all silently dead behind a crawl reporting 20/20 success.
+
+The sixth is the serious one. The service looked completely healthy — green crawl, green
+API, games arriving — and did almost nothing. Both sides of that seam had tests; the join
+between them had none.
+
+---
+
 ## What is verified in this document
 
 | | |

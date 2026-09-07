@@ -89,8 +89,15 @@ def main(base: str) -> int:
         mon = client.get(f"{base}/api/v1/monitoring/status")
         r.check(mon.status_code == 200, "GET /api/v1/monitoring/status is 200")
         if mon.status_code == 200:
-            status = mon.json()
-            r.check("status" in status, "monitoring reports a system status", repr(status)[:100])
+            system = mon.json().get("system", {})
+            state = system.get("status")
+            r.check(state in ("ok", "degraded", "down"), "monitoring reports a system status",
+                    repr(state))
+            # `degraded` is a real answer, not a failure of the smoke: it means the API
+            # and ingest are serving while some capability is not. Print the reason so a
+            # deploy that half-works cannot read as a clean one.
+            if state != "ok":
+                print(f"       note: {system.get('message', '')[:160]}")
 
         # -------------------------------------------------- pages
         print("\npages")

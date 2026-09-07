@@ -23,6 +23,19 @@ SITE=playlens.<ip>.sslip.io bash deploy/caddy-site.sh        # 4. public HTTPS n
 python -m scripts.prod_smoke https://playlens.<ip>.sslip.io  # 5. prove it
 ```
 
+## The mistake to not repeat
+
+`git pull && docker compose up -d` does **not** deploy the new code. The application is
+baked into the image by `COPY app ./app`, so a pull changes the checkout and the
+containers keep running what they were built from. It recreates containers, reports
+success, and deploys nothing.
+
+It bites hardest right after a fix: the log still shows the exact traceback you just
+fixed, and the obvious conclusion — that the fix was wrong — is the wrong one.
+
+Use `update.sh`. It builds. If you are running compose by hand, `--build` is not
+optional.
+
 ## Rules these scripts follow
 
 - **Nothing destructive is written down.** No `rm -rf /`, no `docker system prune`, no
