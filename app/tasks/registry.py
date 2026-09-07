@@ -298,7 +298,10 @@ def maintenance_cleanup(c: Container, uow: UnitOfWork, payload: dict) -> dict:
             now - dt.timedelta(days=settings.snapshot_retention_days)
         ),
         # Worker ids are hostname:pid, so a restart leaves the old row behind forever.
-        "workers": uow.workers.purge_old(now - dt.timedelta(hours=6)),
+        # An hour is already thirty times the 120-second aliveness window: a worker
+        # silent that long is gone, not busy, and keeping the row only clutters the page
+        # it exists for.
+        "workers": uow.workers.purge_old(now - dt.timedelta(hours=1)),
     }
 
 

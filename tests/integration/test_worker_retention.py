@@ -34,7 +34,7 @@ def test_a_worker_that_stopped_reporting_is_forgotten(session_factory, db):
 
     with UnitOfWork(session_factory) as uow:
         removed = uow.workers.purge_old(
-            dt.datetime.now(dt.UTC).replace(tzinfo=None) - dt.timedelta(hours=6)
+            dt.datetime.now(dt.UTC).replace(tzinfo=None) - dt.timedelta(hours=1)
         )
 
     assert removed == 1
@@ -44,13 +44,13 @@ def test_a_worker_that_stopped_reporting_is_forgotten(session_factory, db):
 
 
 def test_retention_keeps_a_worker_that_is_merely_between_jobs(session_factory):
-    """Six hours is generous on purpose: a quiet worker is not a dead one."""
+    """An hour is thirty times the aliveness window: a quiet worker is not a dead one."""
     with UnitOfWork(session_factory) as uow:
         uow.workers.heartbeat("recent:3", queues="ai", active_jobs=0, version="1")
 
     with UnitOfWork(session_factory) as uow:
         removed = uow.workers.purge_old(
-            dt.datetime.now(dt.UTC).replace(tzinfo=None) - dt.timedelta(hours=6)
+            dt.datetime.now(dt.UTC).replace(tzinfo=None) - dt.timedelta(hours=1)
         )
 
     assert removed == 0
