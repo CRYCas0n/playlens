@@ -399,6 +399,15 @@ Fifteen through seventeen are one story told three times: a change of output lan
 touches the schema, the staleness rules and every character budget, and each of them
 failed silently in a way that looked like success.
 
+18. **The page showed whichever platform's summary came back first.** A regenerated lead
+    summary sat unread behind an old one from another platform, so a game that had been
+    fixed still rendered in English.
+19. **A score chip wrapped out of its own border.** Fixed 26px box, allowed to shrink
+    beside a heading; a long Russian heading pushed its text onto a second line.
+20. **The similarity reason chips are stored, not rendered**, so translating the rule
+    reached new rows only. My first fix for that was an INSERT into the jobs table by
+    hand, which enqueued nothing, silently.
+
 The sixth is the serious one. The service looked completely healthy — green crawl, green
 API, games arriving — and did almost nothing. Both sides of that seam had tests; the join
 between them had none.

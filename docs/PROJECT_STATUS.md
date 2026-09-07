@@ -3,7 +3,7 @@
 **Date:** 2026-09-07 · **Repository:** <https://github.com/CRYCas0n/playlens>
 **Production:** <https://playlens.45.67.202.162.sslip.io> — deployed, serving, ingesting
 
-**CI:** green on GitHub Actions · **Run:** `952 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
+**CI:** green on GitHub Actions · **Run:** `965 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
 `smoke: 15 routes` · Release 0 on all 20 games against a live model
 
 Statuses mean one thing each:
@@ -57,7 +57,7 @@ Statuses mean one thing each:
 | **SSE** | VERIFIED | Real uvicorn on a real socket: framing, ordering, `Last-Event-ID` replay, disconnect |
 | **Worker and scheduler** | VERIFIED | Leases, retries, heartbeats, slot idempotency |
 | **Image proxy and cache** | VERIFIED | Allow-list offline; a real 2.3 MB cover fetched, resized under 400 KB, cached; eviction tested |
-| **Operator CLI** | VERIFIED | `python -m app.cli` — status, crawl, seed, summarise, purge. Promised by ADR-014 and previously missing |
+| **Operator CLI** | VERIFIED | `python -m app.cli` — status, crawl, seed, summarise, translate, recompute, purge. The last three exist because work is queued by whatever changes the data, and a change to the *code* changes none |
 | **Health and readiness** | VERIFIED | Reachable ≠ ready: `ok` / `not_migrated` / `down`, each saying what to do |
 | **Docker — files** | VERIFIED as text | 30 static assertions. Two real deployment bugs found this way |
 | **CI** | VERIFIED | 5 jobs green on GitHub Actions in 1m16s: lint, unit, integration **on a real PostgreSQL 16 service**, migration round trip plus boot smoke, security |
