@@ -37,7 +37,7 @@ Statuses mean one thing each:
 | **AI — Russian claims** | VERIFIED | Live: claims, headings and overall paragraphs in Russian, evidence counts declined correctly (`3 рецензии`). The catalogue rewrites itself a day at a time against the $5 ceiling; a summary not yet reached shows the verified English |
 | **AI — in production** | VERIFIED | 213 live calls, $2.72 of a $5/day ceiling, **91.6% claim acceptance** on real reviews — the rest rejected by evidence validation |
 | **AI — evidence validation** | VERIFIED | 42 rejections on real data across 6 classes; 7 invented references caught, 0 published |
-| **AI — cost ceiling** | VERIFIED | Enforced before the call, not after. 9 tests |
+| **AI — cost ceiling** | VERIFIED | Enforced before the call, and it **defers** rather than dropping the work: 237 jobs observed in `retrying` with `next_retry_at` at the top of the hour, waiting for the window to reset. It used to return success having done nothing, which spent the job's key and lost the work silently |
 | **AI — is it useful** | NEEDS HUMAN ACTION | Needs a person who did not write the summaries. `docs/HUMAN_EVALUATION.md`, 20 minutes |
 | **YouTube — discovery and ranking** | VERIFIED | Live Data API, and in production: 42 `youtube.discover` jobs succeeded, 0 failed, real videos linked on game pages |
 | **YouTube — transcripts** | BLOCKED | yt-dlp offered only an m3u8 caption track. No PO-token path, no paid provider. Degradation verified: link and metadata shown, **no AI text** |

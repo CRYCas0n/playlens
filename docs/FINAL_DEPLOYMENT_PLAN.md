@@ -408,7 +408,13 @@ failed silently in a way that looked like success.
     reached new rows only. My first fix for that was an INSERT into the jobs table by
     hand, which enqueued nothing, silently.
 
-The sixth is the serious one. The service looked completely healthy — green crawl, green
+21. **A cost ceiling that dropped the work rather than deferring it.** `BudgetExhausted`
+    existed, carried a retry delay, and the worker already handled it as a deferral — and
+    the call site returned a successful outcome instead, so the job completed having done
+    nothing and spent its idempotency key. This is the root of 15 and 16 both: the work
+    was never done, and everything downstream reported that it had been.
+
+The sixth is the serious one, and the twenty-first is its cause. The service looked completely healthy — green crawl, green
 API, games arriving — and did almost nothing. Both sides of that seam had tests; the join
 between them had none.
 
