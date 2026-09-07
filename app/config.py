@@ -151,10 +151,14 @@ class Settings(BaseSettings):
     llm_max_output_tokens: int = 4000
     llm_timeout_s: float = 300.0
     llm_max_retries: int = 6
-    prompt_version_critic: str = "critic-v1"
-    prompt_version_user: str = "user-v1"
-    prompt_version_letsplay: str = "letsplay-v1"
-    prompt_version_gap: str = "gap-v1"
+    # v2 asks for Russian. The version is part of a summary's fingerprint, so bumping it
+    # is how a prompt change reaches summaries that already exist: every one of them goes
+    # stale and is rewritten on the next pass, spread across days by the daily cost cap.
+    # Editing a prompt without bumping this leaves old output on the page indefinitely.
+    prompt_version_critic: str = "critic-v2"
+    prompt_version_user: str = "user-v2"
+    prompt_version_letsplay: str = "letsplay-v2"
+    prompt_version_gap: str = "gap-v2"
     params_version: str = "p1"
     ai_max_input_tokens: int = 60_000
     ai_min_new_reviews: int = 10
