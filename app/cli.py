@@ -250,6 +250,51 @@ def cmd_summarise(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_translate(args: argparse.Namespace) -> int:
+    """Queue a Russian rendering of the source description for every game that lacks one.
+
+    `game.sync` queues this for a game it has just written, which covers new games and
+    changed descriptions. It does not cover the catalogue that already existed when the
+    site became Russian — the same gap the prompt-version bump had, for the same reason:
+    the work is queued by the thing that changes the data, and nothing changed.
+
+    Queues rather than generates, so it cannot race the worker. The idempotency key is
+    per game, so running it twice is free.
+    """
+    if (code := _require_schema()) is not None:
+        return code
+
+    settings = get_settings()
+    if not settings.llm_enabled:
+        print("LLM_ENABLED is false; nothing to do.", file=sys.stderr)
+        return EXIT_USAGE
+
+    container = get_container()
+    queued = 0
+    with container.uow() as uow:
+        for slug in sorted(uow.games.known_slugs())[: args.limit]:
+            game = uow.games.get_by_slug(slug)
+            if game is None or not game.description or game.description_ru:
+                continue
+            if uow.jobs.enqueue(
+                job_type="game.translate",
+                idempotency_key=f"game.translate:{game.id}",
+                queue="ai",
+                game_id=game.id,
+                payload={"game_id": game.id},
+                priority=4,
+            ).created:
+                queued += 1
+
+    _emit({"queued": queued}, as_json=args.json)
+    if queued:
+        print(
+            f"\n  {queued} descriptions queued for translation. One model call each, "
+            "behind\n  the same daily cost ceiling as the summaries."
+        )
+    return EXIT_OK
+
+
 def cmd_purge(args: argparse.Namespace) -> int:
     """Retention, run by hand. The scheduler does this hourly; this is for a one-off."""
     if (code := _require_schema()) is not None:
@@ -315,6 +360,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     summarise.add_argument("--limit", type=int, default=1000)
     summarise.set_defaults(func=cmd_summarise)
+
+    translate = sub.add_parser(
+        "translate", help="queue Russian descriptions for games that have none"
+    )
+    translate.add_argument("--limit", type=int, default=1000)
+    translate.set_defaults(func=cmd_translate)
 
     sub.add_parser("purge", help="apply retention now").set_defaults(func=cmd_purge)
     return parser
