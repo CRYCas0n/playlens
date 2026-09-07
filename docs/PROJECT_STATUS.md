@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-07 · **Repository:** <https://github.com/CRYCas0n/playlens>
 
-**Run:** `781 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
+**CI:** green on GitHub Actions · **Run:** `791 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
 `smoke: 15 routes` · Release 0 on all 20 games against a live model
 
 Statuses mean one thing each:
@@ -54,8 +54,10 @@ Statuses mean one thing each:
 | **Health and readiness** | VERIFIED | Reachable ≠ ready: `ok` / `not_migrated` / `down`, each saying what to do |
 | **Docker — files** | VERIFIED as text | 30 static assertions. Two real deployment bugs found this way |
 | **Docker — build and run** | BLOCKED | No daemon; installing Docker Desktop needs administrator rights and a reboot |
-| **CI** | NEEDS HUMAN ACTION | 5 jobs written and valid. Push blocked: the token lacks GitHub's `workflow` scope. One command fixes it |
-| **Deployment — blueprint** | IMPLEMENTED — NOT VERIFIED | `render.yaml`: database, web, worker, cron. Parses, tested statically, never applied |
+| **CI** | VERIFIED | 5 jobs green on GitHub Actions in 1m16s: lint, unit, integration **on a real PostgreSQL 16 service**, migration round trip plus boot smoke, security |
+| **Single-container mode** | VERIFIED | `app/allinone.py` against PostgreSQL 16.4: migrated, both threads up, crawled Metacritic live, synced 12 real games in 25s while serving |
+| **Deployment — free path** | IMPLEMENTED — NOT VERIFIED | Hugging Face Spaces + Neon, no card. Root `Dockerfile` and `allinone` mode both tested; no HF account exists |
+| **Deployment — paid blueprint** | IMPLEMENTED — NOT VERIFIED | `render.yaml`: database, web, worker, cron. Parses, tested statically, never applied. **Render is not free for this shape** — no free worker plan, ~$22/mo |
 | **Deployment — public URL** | NEEDS HUMAN ACTION | No hosting account exists. `docs/HUMAN_DEPLOYMENT_HANDOFF.md` |
 | **Backups** | DEFERRED | `pg_dump` procedure documented; automating it before there is data worth losing is premature |
 | **Documentation** | VERIFIED | Every referenced path and module cross-checked against the filesystem |
@@ -63,15 +65,14 @@ Statuses mean one thing each:
 
 ---
 
-## The three things I could not do, and why
+## What I could not do, and why
 
 | | Why | What unblocks it |
 |---|---|---|
 | **Public URL** | No hosting account. Creating one needs an email confirmation and an OAuth grant only the account owner can give | 10 minutes on render.com — `HUMAN_DEPLOYMENT_HANDOFF.md` §2 |
-| **CI running** | GitHub refuses OAuth pushes to `.github/workflows/` without the `workflow` scope, and granting it is a browser flow | `gh auth refresh -s workflow`, then tell me |
 | **Docker verified** | Docker Desktop needs administrator rights and a reboot | Install it, then `docker compose build` |
 
-None of the three is a code problem. The service runs, on PostgreSQL, with working AI,
+Neither is a code problem. The service runs, on PostgreSQL, with working AI and green CI,
 right now.
 
 ---
@@ -102,8 +103,8 @@ Six defects, every one found by running something rather than reading it:
 
 ## What I would do next, in order
 
-1. **`gh auth refresh -s workflow`** — 30 seconds, and CI runs on every push.
-2. **A Render account** — 10 minutes, and the link exists.
-3. **Twenty minutes reading summaries** (`docs/HUMAN_EVALUATION.md`) — the only
+1. **Two free accounts** — Neon for the database, Hugging Face for the app. Eight
+   minutes, no card, and the link exists. `docs/DEPLOYMENT_OPTIONS.md`.
+2. **Twenty minutes reading summaries** (`docs/HUMAN_EVALUATION.md`) — the only
    measurement nobody has taken, and the only one that answers whether this is useful.
-4. **The legal decision** — before the URL is shared with anyone.
+3. **The legal decision** — before the URL is shared with anyone.

@@ -4,29 +4,16 @@ Everything that could be done without you is done. The code is on GitHub, it run
 PostgreSQL, the AI works on your key, and the deployment is described by one file in the
 repository.
 
+CI is on and green — five jobs on every push, including integration tests against a real
+PostgreSQL 16.
+
 What is left is short, and every item is genuinely something only you can do.
 
 ---
 
 ## What I need from you
 
-### 1. One shell command, to turn on CI *(30 seconds)*
-
-The GitHub token on this machine can push code but not workflow files — GitHub restricts
-that scope specifically. The CI configuration is written and waiting locally.
-
-```powershell
-cd "C:\Users\CRYCA\Claude VS Code Project\metacritic-service"
-gh auth refresh -s workflow
-```
-
-It prints a code and opens a browser. Paste the code, approve, done. Then tell me, and I
-will push the workflow and confirm it runs green.
-
-Five jobs: lint, unit tests, integration tests against a real PostgreSQL 16, a migration
-round trip, and a security job.
-
-### 2. Two free accounts, for the public URL *(8 minutes, no card)*
+### 1. Two free accounts, for the public URL *(8 minutes, no card)*
 
 This is the only thing standing between the project and a link you can open.
 
@@ -52,7 +39,7 @@ The whole stack runs in one container there — web, worker and scheduler togeth
 mode is verified: on this machine it migrated, started both threads, crawled Metacritic
 and synced 12 real games in 25 seconds.
 
-### 3. One decision, before anyone else sees it
+### 2. One decision, before anyone else sees it
 
 The service reads Metacritic through an interface Metacritic publishes for its own site.
 Their terms discourage automated collection. On your own machine that is unremarkable; on
@@ -66,16 +53,9 @@ to. If this goes somewhere public, that is worth ten minutes with someone who ca
 
 ---
 
-## What I will do once you have done those
+## What I will do once you have done that
 
-**After (1):**
-```
-push .github/workflows/ci.yml
-watch the run
-report: green, or the failure and the fix
-```
-
-**After (2), against your real URL:**
+**Against your real URL:**
 ```
 GET /api/v1/health          -> {"status":"ok"}
 GET /                       -> the catalogue
@@ -115,13 +95,15 @@ Either way, tell me the host, the user, and whether a domain points at it. Nothi
 
 | | |
 |---|---|
-| Repository | <https://github.com/CRYCas0n/playlens> — private, `main`, 270 files, no secrets |
+| Repository | <https://github.com/CRYCas0n/playlens> — private, `main`, no secrets |
+| CI | Green: lint, unit, integration on PostgreSQL 16, migration round trip, security — 1m16s |
 | Tests | 768 green on SQLite, 362 of them green again on PostgreSQL 16.4 |
 | PostgreSQL | Real server: all five partial unique indexes, `pg_trgm`, `FOR UPDATE SKIP LOCKED` |
 | AI | Full Release 0 on all 20 games with your key: PV1 85.7% on gpt-4o, cost $0.12 |
 | YouTube | Live API: discovery and ranking work; transcripts do not, and the fallback is honest |
 | Browser | Real Chromium at four widths against the PostgreSQL-backed app |
-| Deployment files | `render.yaml`, Dockerfile, three compose files — all parse, all tested statically |
+| Deployment files | `render.yaml`, two Dockerfiles, three compose files — all parse, all tested statically |
+| One-container mode | Verified on PostgreSQL 16.4: migrated, both threads up, crawled and synced 12 real games |
 
 Two real deployment bugs were found and fixed by those static tests before any deploy: a
 hardcoded port that would have failed Render's health check, and a cron role the entrypoint
