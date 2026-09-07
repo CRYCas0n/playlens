@@ -211,15 +211,23 @@ def cmd_summarise(args: argparse.Namespace) -> int:
     # once per invocation -- running this twice is free.
     from app.domain.enums import Audience
 
-    # The key carries the DATE, not the prompt version. A job that reaches the daily cost
-    # ceiling returns "budget_exhausted" and is marked succeeded having done nothing --
-    # so a key naming the prompt version was spent permanently, and half the catalogue
-    # kept its old summaries with no way to ask again. Keyed by date, the command is
-    # idempotent within a day and repeatable across days, which is exactly how a daily
-    # ceiling is supposed to be worked through.
+    # The key carries the prompt version AND the date, and it needs both.
+    #
+    # Version alone was spent permanently by a budget stop: a job that reaches the daily
+    # ceiling is marked succeeded having done nothing, so the pairs it skipped could never
+    # be asked again for that prompt.
+    #
+    # Date alone deduplicated against the same day's earlier run. Those jobs had already
+    # executed under the code as it was before `recipe_changed` existed, decided not to
+    # regenerate, and succeeded -- so re-running the command after fixing the code queued
+    # nothing for them and the fix could not land until tomorrow.
+    #
+    # Together: idempotent within a day for a given recipe, immediately re-queueable when
+    # the recipe changes, and resumable the next day when the money runs out.
     queued = 0
     with container.uow() as uow:
         today = dt.date.today().isoformat()
+        recipe = f"{container.settings.prompt_version_critic}"
         for slug in sorted(uow.games.known_slugs())[: args.limit]:
             game = uow.games.get_by_slug(slug)
             if game is None:
@@ -244,7 +252,8 @@ def cmd_summarise(args: argparse.Namespace) -> int:
                     if uow.jobs.enqueue(
                         job_type="summary.generate",
                         idempotency_key=(
-                            f"summary:{platform.id}:{audience.value}:refresh:{today}"
+                            f"summary:{platform.id}:{audience.value}"
+                            f":refresh:{recipe}:{today}"
                         ),
                         queue="ai",
                         game_id=game.id,
