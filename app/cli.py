@@ -224,23 +224,38 @@ def cmd_summarise(args: argparse.Namespace) -> int:
             game = uow.games.get_by_slug(slug)
             if game is None:
                 continue
-            lead = next((gp for gp in game.platforms if gp.is_lead), None)
-            if lead is None:
-                continue
-            for audience in (Audience.CRITIC, Audience.USER):
-                if uow.jobs.enqueue(
-                    job_type="summary.generate",
-                    idempotency_key=f"summary:{lead.id}:{audience.value}:refresh:{today}",
-                    queue="ai",
-                    game_id=game.id,
-                    payload={
-                        "game_id": game.id,
-                        "game_platform_id": lead.id,
-                        "audience": audience.value,
-                    },
-                    priority=3,
-                ).created:
-                    queued += 1
+
+            # EVERY platform that already has a summary, not just the lead. Only the lead
+            # was covered, so a game's other platforms kept summaries written by the old
+            # prompt -- and until the presenter was fixed, one of those was what the page
+            # showed.
+            platforms = [
+                gp
+                for gp in game.platforms
+                if gp.is_lead
+                or any(
+                    uow.summaries.current(game_platform_id=gp.id, audience=a)
+                    for a in (Audience.CRITIC, Audience.USER)
+                )
+            ]
+
+            for platform in platforms:
+                for audience in (Audience.CRITIC, Audience.USER):
+                    if uow.jobs.enqueue(
+                        job_type="summary.generate",
+                        idempotency_key=(
+                            f"summary:{platform.id}:{audience.value}:refresh:{today}"
+                        ),
+                        queue="ai",
+                        game_id=game.id,
+                        payload={
+                            "game_id": game.id,
+                            "game_platform_id": platform.id,
+                            "audience": audience.value,
+                        },
+                        priority=3,
+                    ).created:
+                        queued += 1
 
     _emit({"queued": queued}, as_json=args.json)
     if queued:

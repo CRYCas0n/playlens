@@ -242,10 +242,22 @@ def game_detail(
             min_points=settings.platform_gap_min_points,
         )
 
-    critic_summary = next(
-        (s for s in summaries if s.audience == Audience.CRITIC.value), None
-    )
-    user_summary = next((s for s in summaries if s.audience == Audience.USER.value), None)
+    # Prefer the LEAD platform's summary. `summaries` holds one per platform and this was
+    # `next(...)`, which takes whichever row the query happened to return first -- so
+    # which platform's summary a reader saw was undefined, and could disagree with the
+    # scores and the verdict above it, which are always the lead's. It also meant a
+    # regenerated lead summary could sit unread behind an old one from another platform.
+    lead_id = next((gp.id for gp in game.platforms if gp.is_lead), None)
+
+    def _pick(audience: Audience):
+        matching = [s for s in summaries if s.audience == audience.value]
+        for summary in matching:
+            if summary.game_platform_id == lead_id:
+                return summary
+        return matching[0] if matching else None
+
+    critic_summary = _pick(Audience.CRITIC)
+    user_summary = _pick(Audience.USER)
     lets_play_summary = next(
         (s for s in summaries if s.audience == Audience.LETSPLAY.value), None
     )

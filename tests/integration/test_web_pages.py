@@ -245,6 +245,63 @@ class TestVerdict:
         assert "баллов выше" in higher and "баллов выше" not in lower
 
 
+class TestWhichPlatformsSummaryIsShown:
+    """The page shows the LEAD platform's summary, and it did not.
+
+    `next(...)` over every current summary takes whichever row the query returns first,
+    so which platform a reader saw was undefined. It could disagree with the scores and
+    the verdict above it, which are always the lead's — and in production it meant a
+    regenerated lead summary sat unread behind an old one from another platform, in the
+    old language.
+    """
+
+    def test_the_lead_platforms_summary_wins(self, app_client, db, load_harvest):
+
+        from app.db.models import GamePlatform, Summary
+
+        game_id, lead_id = load_harvest("elden-ring", "playstation-5")
+        lead = db.get(GamePlatform, lead_id)
+        lead.is_lead = True
+
+        # A second platform, made here so the test does not depend on what the fixture
+        # happens to carry.
+        other = GamePlatform(
+            game_id=game_id,
+            platform_id=lead.platform_id + 1,
+            is_lead=False,
+            metascore_raw=70,
+            metascore_count=5,
+        )
+        db.add(other)
+        db.flush()
+        others = [other]
+
+        def add(game_platform_id: int, heading: str) -> None:
+            db.add(
+                Summary(
+                    game_id=game_id,
+                    game_platform_id=game_platform_id,
+                    audience="critic",
+                    status="fresh",
+                    input_fingerprint=f"fp-{game_platform_id}",
+                    heading=heading,
+                    overall=f"Обзор для платформы {game_platform_id}.",
+                    is_current=True,
+                    reviews_used=9,
+                    reviews_candidates=9,
+                )
+            )
+
+        # The non-lead one first, so "whichever came back first" would pick the wrong one.
+        add(others[0].id, "НЕ ВЕДУЩАЯ ПЛАТФОРМА")
+        add(lead_id, "ВЕДУЩАЯ ПЛАТФОРМА")
+        db.commit()
+
+        html = app_client.get("/games/elden-ring").text
+        assert "ВЕДУЩАЯ ПЛАТФОРМА" in html
+        assert "НЕ ВЕДУЩАЯ ПЛАТФОРМА" not in html
+
+
 class TestSummariesAndSections:
     def test_case_7_no_critic_summary_shows_a_pending_block(self, app_client, world):
         """EDGE_CASES 7/8: pending, not empty -- the data is coming."""
