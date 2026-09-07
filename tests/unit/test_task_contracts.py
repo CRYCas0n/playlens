@@ -54,3 +54,15 @@ def test_the_crawl_tick_is_never_retried():
 def test_every_declared_ceiling_is_at_least_one():
     for job_type, attempts in MAX_ATTEMPTS.items():
         assert attempts >= 1, job_type
+
+
+def test_purge_and_the_scheduled_cleanup_are_the_same_thing():
+    """They were two implementations of one idea and had already drifted: the CLI forgot
+    `crawl_items`, and then forgot worker rows when those were added to retention. The
+    docstring said "the scheduler does this hourly" the whole time."""
+    import inspect
+
+    from app.cli import cmd_purge
+
+    source = inspect.getsource(cmd_purge)
+    assert "maintenance_cleanup" in source, "the CLI has its own retention again"

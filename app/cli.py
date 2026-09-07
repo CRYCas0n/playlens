@@ -361,25 +361,24 @@ def cmd_recompute(args: argparse.Namespace) -> int:
 
 
 def cmd_purge(args: argparse.Namespace) -> int:
-    """Retention, run by hand. The scheduler does this hourly; this is for a one-off."""
+    """Retention, run by hand — the same task the scheduler runs hourly.
+
+    It used to be a second implementation of the same idea, and the two had already
+    drifted: this one forgot `crawl_items` and, once worker rows were added to retention,
+    forgot those too. "The scheduler does this hourly" was in the docstring while the two
+    did different things.
+
+    This module's whole premise is that a subcommand calls what the worker calls, so it
+    now calls the task itself.
+    """
     if (code := _require_schema()) is not None:
         return code
 
-    settings = get_settings()
-    now = dt.datetime.now(dt.UTC)
+    from app.tasks.registry import maintenance_cleanup
+
     container = get_container()
     with container.uow() as uow:
-        removed = {
-            "events": uow.events.purge_old(
-                now - dt.timedelta(days=settings.events_retention_days)
-            ),
-            "jobs": uow.jobs.purge_old(
-                now - dt.timedelta(days=settings.jobs_retention_days)
-            ),
-            "snapshots": uow.snapshots.purge_unreferenced(
-                now - dt.timedelta(days=settings.snapshot_retention_days)
-            ),
-        }
+        removed = maintenance_cleanup(container, uow, {})
     _emit(removed, as_json=args.json)
     return EXIT_OK
 
