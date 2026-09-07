@@ -311,6 +311,46 @@ def cmd_translate(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_recompute(args: argparse.Namespace) -> int:
+    """Recompute similarity for every game.
+
+    The reason on a similar-game chip is *stored* when similarity is computed, not derived
+    when the page renders, so changing `reason_for` reaches new rows only. Recomputing is
+    arithmetic -- no model calls, no source requests -- so this is cheap and safe to run
+    whenever the rule changes.
+
+    The third command of its shape, after `summarise --all` and `translate`, and for the
+    third time the reason is the same: work is queued by whatever changes the data, and a
+    change to the *code* changes no data. The first attempt at this was an INSERT into the
+    jobs table by hand, which silently enqueued nothing.
+    """
+    if (code := _require_schema()) is not None:
+        return code
+
+    container = get_container()
+    queued = 0
+    today = dt.date.today().isoformat()
+    with container.uow() as uow:
+        for slug in sorted(uow.games.known_slugs())[: args.limit]:
+            game = uow.games.get_by_slug(slug)
+            if game is None:
+                continue
+            if uow.jobs.enqueue(
+                job_type="similarity.recompute",
+                idempotency_key=f"similarity:{game.id}:recompute:{today}",
+                queue="enrich",
+                game_id=game.id,
+                payload={"game_id": game.id},
+                priority=4,
+            ).created:
+                queued += 1
+
+    _emit({"queued": queued}, as_json=args.json)
+    if queued:
+        print(f"\n  {queued} games queued for similarity recompute. No model calls.")
+    return EXIT_OK
+
+
 def cmd_purge(args: argparse.Namespace) -> int:
     """Retention, run by hand. The scheduler does this hourly; this is for a one-off."""
     if (code := _require_schema()) is not None:
@@ -382,6 +422,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     translate.add_argument("--limit", type=int, default=1000)
     translate.set_defaults(func=cmd_translate)
+
+    recompute = sub.add_parser(
+        "recompute", help="recompute similarity for every game (no model calls)"
+    )
+    recompute.add_argument("--limit", type=int, default=5000)
+    recompute.set_defaults(func=cmd_recompute)
 
     sub.add_parser("purge", help="apply retention now").set_defaults(func=cmd_purge)
     return parser
