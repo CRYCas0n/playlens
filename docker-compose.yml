@@ -1,0 +1,96 @@
+# Four containers, no message broker.
+#
+# The job queue lives in PostgreSQL (ADR-003), which removes Redis, Celery, a beat
+# process and the flower dashboard from this file. The whole system is: one database,
+# one API, N workers, exactly one scheduler.
+
+name: playlens
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: playlens
+      POSTGRES_PASSWORD: playlens
+      POSTGRES_DB: playlens
+      # The queue uses FOR UPDATE SKIP LOCKED; nothing here needs tuning beyond
+      # the defaults at this scale.
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    # No `ports:` on purpose. The database is reachable on the compose network, which is
+    # everything the application needs. Publishing 5432 puts PostgreSQL on the host's
+    # interfaces, and on a public machine that is an open database. To reach it from a
+    # tool on your laptop, add the dev overlay:
+    #   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U playlens -d playlens"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    environment:
+      ROLE: api
+      DATABASE_URL: postgresql+psycopg://playlens:playlens@postgres:5432/playlens
+      APP_ENV: ${APP_ENV:-development}
+      # Required. `make up` fails loudly rather than starting an unguarded admin API.
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN in .env before starting}
+      LLM_ENABLED: ${LLM_ENABLED:-false}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      YOUTUBE_ENABLED: ${YOUTUBE_ENABLED:-false}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    ports:
+      - "8000:8000"
+    volumes:
+      - imgcache:/app/.cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    environment:
+      ROLE: worker
+      DATABASE_URL: postgresql+psycopg://playlens:playlens@postgres:5432/playlens
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN in .env before starting}
+      WORKER_QUEUES: ${WORKER_QUEUES:-crawl,enrich,ai}
+      LLM_ENABLED: ${LLM_ENABLED:-false}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      YOUTUBE_ENABLED: ${YOUTUBE_ENABLED:-false}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+    # Scale freely: workers claim jobs with SKIP LOCKED, so two of them never take the
+    # same job, and a worker that dies has its lease reclaimed after JOB_LEASE_TTL_S.
+    deploy:
+      replicas: 2
+    depends_on:
+      api:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    environment:
+      ROLE: scheduler
+      DATABASE_URL: postgresql+psycopg://playlens:playlens@postgres:5432/playlens
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN in .env before starting}
+      CRAWL_ENABLED: ${CRAWL_ENABLED:-true}
+    # EXACTLY ONE. Two schedulers would enqueue each tick twice; the enqueue is
+    # idempotent by key so the duplicates are skipped rather than run, but the second
+    # process is doing nothing useful. Do not scale this service.
+    deploy:
+      replicas: 1
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  imgcache:

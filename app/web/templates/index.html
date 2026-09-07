@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m %}
+
+{% block title %}{{ app_name }} — is this game worth your time?{% endblock %}
+
+{% block content %}
+<div class="container">
+{% if not sections.spotlight %}
+  {#- An empty index is a distinct state from an empty search (design/EDGE_CASES 23). -#}
+  {{ m.empty_state(
+      'No games indexed yet',
+      'The first crawl has not finished. Games appear here as soon as they are processed —
+       usually within an hour of the first run.',
+      'Check pipeline status', '/admin/monitoring') }}
+{% else %}
+
+  {#- The spotlight is a WORKING VERDICT, not a banner: a first-time visitor learns what
+      this site does that the source does not, in one screen (design/PAGES.md 2.1). -#}
+  {% set s = sections.spotlight %}
+  <section class="spotlight">
+    <div class="spotlight__body">
+      <span class="spotlight__eyebrow">Spotlight{% if s.updated_at %} · Updated {{ s.updated_at | ago }}{% endif %}</span>
+      <h1 class="t-display-2"><a class="t-link" href="/games/{{ s.slug }}">{{ s.title }}</a></h1>
+      <p class="t-body-lg">{{ s.verdict_line }}</p>
+      <div class="row gap-5 row--wrap">
+        {{ m.score_chip(s.metascore, kind='MC') }}
+        {{ m.score_chip(s.userscore, kind='USR') }}
+        <span class="t-caption t-muted">
+          {{ s.metascore.review_count | thousands }} critic reviews ·
+          {{ s.userscore.review_count | thousands }} player ratings
+        </span>
+      </div>
+      <div class="row gap-4 row--wrap">
+        <a class="btn btn--primary" href="/games/{{ s.slug }}">See the verdict</a>
+        <a class="btn btn--secondary" href="/games">Browse all games</a>
+      </div>
+    </div>
+    <div class="spotlight__cover hide-tablet">{{ m.cover(s.title, s.cover_url, 480) }}</div>
+  </section>
+
+  {% if sections.just_released %}
+  {{ m.rail(
+      'Just released',
+      'Out in the last 30 days. Scores here still move — player scores in particular.',
+      sections.just_released) }}
+  {% endif %}
+
+  {% if sections.disagree %}
+  {#- The block a competitor's front page cannot show, and the one that teaches the
+      product's idea before a user opens a game (design/PAGES.md 2.3). -#}
+  {{ m.rail(
+      'Critics and players disagree',
+      'The gap between the two audiences is usually the most useful thing you can know
+       about a game before buying it.',
+      sections.disagree, flags=True) }}
+  {% endif %}
+
+  {% if sections.highest_rated %}
+  {{ m.rail(
+      'Highest rated',
+      'Metascore 85 and above, with at least 10 critic reviews counted.',
+      sections.highest_rated) }}
+  {% endif %}
+
+  {% if sections.recently_updated %}
+  <section class="sec">
+    <div class="sec__head"><div class="sec__title-wrap">
+      <h2 class="t-h2">Recently updated</h2>
+      <p class="rail__purpose">Games whose reviews or summaries changed in the last day.</p>
+    </div>
+    <a class="btn btn--secondary" href="/games">Browse all games</a>
+    </div>
+    <div class="grid-games">
+      {%- for game in sections.recently_updated %}{{ m.game_card(game) }}{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+{% endif %}
+</div>
+{% endblock %}

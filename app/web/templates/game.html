@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m %}
+
+{% block title %}{{ game.title }} — {{ app_name }}{% endblock %}
+{% block description %}{{ game.verdict.line | striptags }}{% endblock %}
+
+{% block content %}
+{#
+  Section order is the design's, not the assignment's field order (design/PAGES.md 1.1):
+  identity -> verdict -> how solid -> what it is -> why they think that -> how it feels ->
+  what next. The description sits BELOW the scores because a paragraph between the title
+  and the verdict pushes the single most decisive element off a laptop screen.
+#}
+
+<section class="ghero" id="hero">
+  <div class="ghero__art ghero__art--from-cover">
+    {%- if game.cover_url %}<img src="{{ game.cover_url | img(640) }}" alt="">{% endif %}
+  </div>
+  <div class="ghero__scrim"></div>
+  <div class="container ghero__inner">
+    <a class="t-body-sm t-muted" href="/games" style="display:inline-block;margin-bottom:var(--sp-7)">‹ All games</a>
+    <div class="ghero__grid">
+      <div class="ghero__cover">{{ m.cover(game.title, game.cover_url, 480) }}</div>
+      <div class="stack gap-6">
+        <div class="row gap-3 row--wrap">
+          {%- for genre in game.genres %}<span class="badge">{{ genre.name }}</span>{% endfor %}
+        </div>
+        {#- overflow-wrap is in the stylesheet: a 72-character title is real data. -#}
+        <h1 class="t-display-1 ghero__title">{{ game.title }}</h1>
+        <div class="ghero__meta">
+          {%- for company in game.developers %}<span>{{ company.name }}</span><span class="dot"></span>{% endfor %}
+          {%- for company in game.publishers %}<span>{{ company.name }}</span><span class="dot"></span>{% endfor %}
+          {%- if game.release_date %}<span>{{ game.release_date | date_long }}</span><span class="dot"></span>{% endif %}
+          {#- The ONLY place page-level freshness appears (design/PAGES.md 1.2). -#}
+          <span class="t-muted">Updated {{ game.updated_at | ago }}</span>
+        </div>
+        <div class="plats">{{ m.platform_chips(game.platforms | map(attribute='platform') | list, lead=True) }}</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container" style="padding-top:var(--sp-9)">
+  <div class="verdict">
+    <div class="verdict__col">
+      <span class="verdict__col-label">Critics</span>
+      {{ m.gauge(game.metascore) }}
+      <span class="verdict__col-sub">{% if game.metascore.review_count %}{{ game.metascore.review_count | thousands }} reviews{% else %}no reviews{% endif %}</span>
+    </div>
+    <div class="verdict__col">
+      <span class="verdict__col-label">Players</span>
+      {{ m.gauge(game.userscore, small=True) }}
+      <span class="verdict__col-sub">{% if game.userscore.review_count %}{{ game.userscore.review_count | thousands }} ratings{% else %}no ratings{% endif %}</span>
+    </div>
+    <div class="verdict__body">
+      {#- Composed from the two numbers above, so it cannot contradict them and needs no
+          AI disclaimer (ADR-012). -#}
+      <p class="verdict__line">{{ game.verdict.line }}</p>
+      {%- if game.verdict.platform_line %}
+      <p class="verdict__line t-body" data-platform-line>{{ game.verdict.platform_line }}</p>
+      {%- endif %}
+      {%- if game.verdict.strengths or game.verdict.watch_outs %}
+      <div class="signals">
+        {%- if game.verdict.strengths %}
+        <div class="signals__row">
+          <span class="signals__legend">Strengths</span>
+          {%- for item in game.verdict.strengths %}
+          <span class="signal signal--pos"><span class="signal__glyph" aria-hidden="true">+</span>{{ item }}</span>
+          {%- endfor %}
+        </div>
+        {%- endif %}
+        {%- if game.verdict.watch_outs %}
+        <div class="signals__row">
+          <span class="signals__legend">Watch-outs</span>
+          {%- for item in game.verdict.watch_outs %}
+          <span class="signal signal--neg"><span class="signal__glyph" aria-hidden="true">−</span>{{ item }}</span>
+          {%- endfor %}
+        </div>
+        {%- endif %}
+      </div>
+      {%- endif %}
+    </div>
+  </div>
+</div>
+
+{% set sections = [] %}
+{% set _ = sections.append(('scores', 'Scores')) %}
+{% set _ = sections.append(('about', 'What it is')) %}
+{% set _ = sections.append(('reviews', 'Critics & players')) %}
+{% if game.lets_play %}{% set _ = sections.append(('letsplay', 'Gameplay')) %}{% endif %}
+{% set _ = sections.append(('similar', 'Similar games')) %}
+
+<nav class="subnav" aria-label="Sections" style="margin-top:var(--sp-9)">
+  <div class="container subnav__inner">
+    {%- for anchor, label in sections %}
+    <a class="subnav__link{% if loop.first %} is-active{% endif %}" href="#{{ anchor }}">{{ label }}</a>
+    {%- endfor %}
+  </div>
+</nav>
+
+<div class="container">
+
+  <section class="sec" id="scores">
+    <div class="sec__head"><div class="sec__title-wrap">
+      <h2 class="t-h2">Scores</h2>
+      <p class="rail__purpose">Both audiences on one 0–100 axis, so the comparison is honest.</p>
+    </div></div>
+    <div class="two-col">
+      <div class="consensus">
+        {{ m.score_bar('Critics', game.metascore) }}
+        {{ m.score_bar('Players', game.userscore) }}
+        <div class="consensus__note{% if game.consensus.tone == 'warning' %} consensus__note--warn{% endif %}">
+          <span class="info-dot" aria-hidden="true">{% if game.consensus.tone == 'warning' %}!{% else %}i{% endif %}</span>
+          <span>{{ game.consensus.note }}</span>
+        </div>
+        {#- Always present: a reader must never have to guess what 85 means. -#}
+        <p class="t-caption t-muted">{{ game.consensus.axis_caption }}</p>
+      </div>
+      <div>
+        <h3 class="t-h3" style="margin-bottom:var(--sp-5)">By platform</h3>
+        {%- if game.platforms and not game.platform_scores_pending %}
+        <div class="plat-rows">
+          {%- for row in game.platforms %}
+          <div class="plat-row{% if row.platform.slug == selected_platform %} is-selected{% endif %}">
+            <span class="plat-row__name">{{ row.platform.name }}</span>
+            <span class="plat-row__meta">{{ row.platform.code }}</span>
+            {{ m.score_chip(row.metascore, small=True) }}
+            <button class="icon-btn" type="button"
+                    data-prefer-platform="{{ row.platform.slug }}"
+                    aria-label="Use {{ row.platform.name }} as my platform"
+                    title="Use {{ row.platform.name }} as my platform">★</button>
+          </div>
+          {%- endfor %}
+        </div>
+        {%- elif game.platforms %}
+        {#- The platforms are real; only their scores are missing, so the section stays
+            with a pending block (design/EDGE_CASES.md case 18). -#}
+        {{ m.pending('Pending', 'Per-platform scores appear once each version has enough critic reviews. ' ~ game.platforms | length ~ ' platforms are indexed.') }}
+        <div class="plats" style="margin-top:var(--sp-6)">
+          {{ m.platform_chips(game.platforms | map(attribute='platform') | list) }}
+        </div>
+        {%- endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="about">
+    <div class="sec__head"><div class="sec__title-wrap"><h2 class="t-h2">What it is</h2></div></div>
+    {%- if game.description %}
+    <p class="t-body-lg t-prose">{{ game.description }}</p>
+    {%- else %}
+    <p class="t-body-lg t-muted">No description has been indexed for this game yet.</p>
+    {%- endif %}
+    <div class="row gap-4 row--wrap" style="margin-top:var(--sp-6)">
+      <span class="src">Metacritic</span>
+      <span class="t-caption t-muted">Description and metadata are taken from the source listing, unedited.</span>
+      {#- Deliberately a link and not an embed, and deliberately not called a "trailer":
+          the field is whatever video the source attached (C-27, ADR-019 section 4). -#}
+      {%- if game.video %}
+      <a class="t-link t-body-sm" href="{{ game.video.url }}" target="_blank" rel="noopener nofollow">
+        Video: {{ game.video.title or 'watch on the source site' }} ↗
+      </a>
+      {%- endif %}
+      <a class="t-link t-body-sm" href="{{ game.source_url }}" target="_blank" rel="noopener nofollow">Open on Metacritic ↗</a>
+    </div>
+  </section>
+
+  <section class="sec" id="reviews">
+    <div class="sec__head"><div class="sec__title-wrap">
+      <h2 class="t-h2">Critics &amp; players</h2>
+      <p class="rail__purpose">Side by side, because the difference between them is the point.</p>
+    </div></div>
+    <div class="summaries">
+      {% include "partials/summary.html" with context %}
+    </div>
+    {%- if game.gap %}
+    <div class="consensus__note consensus__note--warn" style="margin-top:var(--sp-8)">
+      <span class="info-dot" aria-hidden="true">!</span>
+      <span>
+        <strong>Why they disagree.</strong> {{ game.gap.explanation }}
+        <span class="t-caption t-muted">Likely cause, drawn from {{ game.gap.evidence | length }} cited reviews on both sides.</span>
+      </span>
+    </div>
+    {%- endif %}
+  </section>
+
+  {%- if game.lets_play %}
+  <section class="sec" id="letsplay">
+    {% include "partials/letsplay.html" with context %}
+  </section>
+  {%- endif %}
+
+  <section class="sec" id="similar" data-rail>
+    <div class="sec__head">
+      <div class="sec__title-wrap">
+        <h2 class="t-h2">If you like this</h2>
+        {%- if game.similar %}
+        <p class="rail__purpose">Matched against games already in our index.{% if game.similar | selectattr('reason') | list %} Where we can say why, we do.{% endif %}</p>
+        {%- endif %}
+      </div>
+      {%- if game.similar | length > 4 %}
+      <div class="rail__controls">
+        <button class="icon-btn icon-btn--outline" data-rail-dir="prev" aria-label="Scroll left">‹</button>
+        <button class="icon-btn icon-btn--outline" data-rail-dir="next" aria-label="Scroll right">›</button>
+      </div>
+      {%- endif %}
+    </div>
+    {%- if game.similar %}
+    <div class="rail__track rail__track--6">
+      {%- for item in game.similar %}{{ m.similar_card(item) }}{% endfor %}
+    </div>
+    {%- else %}
+    {#- An honest empty state. Padding the rail with loosely-related games destroys trust
+        in every other recommendation on the site (design/EDGE_CASES.md case 14). -#}
+    {{ m.empty_state(
+        'Nothing comparable yet',
+        'We only suggest games that are already in our index, and none of them are close
+         enough to this one to be worth your time. This updates as the catalogue grows.',
+        'Browse by genre instead', '/games', variant='inline') }}
+    {%- endif %}
+  </section>
+</div>
+
+<div class="mobile-actions">
+  {{ m.score_chip(game.metascore, kind='MC') }}
+  {{ m.score_chip(game.userscore, kind='USR') }}
+  <span class="spacer"></span>
+  {%- if game.similar %}
+  <a class="btn btn--secondary btn--sm" href="#similar">Similar games</a>
+  {%- else %}
+  <a class="btn btn--secondary btn--sm" href="/games">All games</a>
+  {%- endif %}
+</div>
+{% endblock %}

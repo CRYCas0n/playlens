@@ -1,0 +1,22 @@
+GAME: Blood Dungeon  [slug=blood-dungeon]  PLATFORM: pc  stratum=E-thin
+released: 2026-08-25  genres: 2D Platformer
+developer: Messhof
+ALL PLATFORMS (critic): playstation-5=None; xbox-series-x=None; pc=74; nintendo-switch=None; nintendo-switch-2=None
+CRITIC STATS: score=74 n=9 pos=5 neu=4 neg=0
+USER STATS:   score=0 n=3 pos=2 neu=1 neg=0
+SAMPLED: critics 10/10 (spread over score range); users 1/1 (pos 1, neu 0, neg 0, unlabeled 0)
+
+=== CRITIC REVIEWS (sampled across score range) ===
+[C00] 85 | Loot Level Chill | Blood Dungeon is a frantic platformer twist on that familiar Survivors formula, with fast paced action and death waiting around every corner.
+[C01] 80 | Game Informer | Blood Dungeon is a refreshing take on the genre Vampire Survivors popularized only four years ago, and it effectively establishes its own identity both with its art style and platformer-focused mentality. It is fun to play, whereas many of these games are ultimately fun to experience passi
+[C02] 80 | Console Creatures | The best thing that Blood Dungeon has to offer is its unique take on the survivor-like gameplay. Bringing the experience to a 2D platformer with insane visuals and characters you’ll just chuckle and shake your head at is awesome. There is still a lot of been-there-done-that here, but the m
+[C03] 80 | SteamDeckHQ | Blood Dungeon is an addictive roguelike with fast-paced action and tons of charm. The crude drawings mix extremely well with the gameplay loop, which is frantic and has fantastic mechanics. Not all of the upgrades feel impactful, but it’s enough to keep me hooked and wanting to keep playin
+[C04] 80 | MonsterVine | Even though Blood Dungeon occasionally stumbles when it comes to its platforming or its hub world, it’s hard to deny just how effectively it sinks its teeth into you, convincing you to do “just one more run,” even though that’s the exact same thing you said to yourself over an hour ago. Th
+[C05] 70 | Shacknews | I keep going back and forth with how I feel about Blood Dungeon in its entirety. It’s fun to play, has a cool aesthetic, and its emphasis on score-chasing feels distinct in this genre. But its lack of interest in expression and build-crafting really hurts that momentum, and makes playing l
+[C06] 70 | Edge Magazine | It's a chaotic, throwaway delight, which is probably the intention. [Issue#428, p.123]
+[C07] 66 | PC Gamer | Blood Dungeon sees a distinctive indie studio apply its design smarts to an exhausted modern genre, with surprisingly conservative but enjoyable results.
+[C08] 65 | DayOne | Blood Dungeon asks the player for a little more patience then I expected. Its biggest weakness is the slow speed at which runs can build towards that wonderful bullet-heaven feeling of becoming hilariously overpowered. With some genuinely great platforming, and a decent number of unlocks, 
+[C09] None | Polygon | There are a lot of toys to experiment with, but there’s not too much depth. There are only a few levels in the game currently, and at least one of them is a dud. (Trying to fend off enemies underwater while grabbing oxygen bubbles to stay alive? No thanks!) It can feel like a quick prototy
+
+=== USER REVIEWS (stratified by sentiment) ===
+[U00] 10 | positive | I’m pretty picky about what games I love, this is a game I LOVE. Very addictive, the concept is simple yet the game has a lot of depth. The controls are smooth the graphics are uniquely beautiful and the music is a subtle yet important touch. Overall I genuinely love this game, very addictive. For those who look for a 

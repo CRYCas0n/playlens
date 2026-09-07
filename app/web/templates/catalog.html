@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m %}
+
+{% block title %}Games — {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container catalog">
+  <div class="stack gap-5" style="margin-bottom:var(--sp-9)">
+    <h1 class="t-h1">Games</h1>
+    <p class="t-body-lg t-secondary" style="max-width:70ch">
+      Every game we have indexed, with both scores on one scale.
+      Sort by the critic–player gap to find the ones worth a closer look.
+    </p>
+  </div>
+
+  {#- The form works without JavaScript: filtering is progressive enhancement, not a
+      requirement (ADR-017). With JS it swaps the grid in place, debounced. -#}
+  <form class="catalog__layout" id="catalog-form" action="/games" method="get">
+    <aside class="filters" aria-label="Filters">
+      <div class="filters__head">
+        <span class="t-label">Filters</span>
+        <a class="btn btn--ghost btn--sm" href="/games">Clear all</a>
+      </div>
+
+      <fieldset class="filters__group">
+        <legend class="t-label">Platform</legend>
+        <div class="row gap-3 row--wrap">
+          {%- for facet in results.facets %}
+          <label class="chip{% if facet.slug in filters.platforms %} is-selected{% endif %}">
+            <input type="checkbox" name="platform" value="{{ facet.slug }}" class="visually-hidden"
+                   {% if facet.slug in filters.platforms %}checked{% endif %}>
+            {{ facet.code }}<span class="chip__count">{{ facet.count }}</span>
+          </label>
+          {%- endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="filters__group">
+        <legend class="t-label">Critic score</legend>
+        <div class="row gap-3 row--wrap">
+          {%- for value, label in [('any','Any score'), ('excellent','Excellent 85+'), ('good','Good 70+'), ('mixed','Mixed 50+'), ('unrated','Not rated yet')] %}
+          <label class="chip{% if filters.score_band == value %} is-selected{% endif %}">
+            <input type="radio" name="score_band" value="{{ value }}" class="visually-hidden"
+                   {% if filters.score_band == value %}checked{% endif %}>{{ label }}
+          </label>
+          {%- endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="filters__group">
+        <legend class="t-label">Released</legend>
+        <select class="select" name="released">
+          {%- for value, label in [('any','Any time'), ('last30','Last 30 days'), ('2026','2026'), ('earlier','2025 and earlier')] %}
+          <option value="{{ value }}"{% if filters.released == value %} selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </fieldset>
+
+      <button class="btn btn--primary hide-desktop" type="submit">Show results</button>
+    </aside>
+
+    <div class="catalog__main">
+      <div class="toolbar">
+        <div class="search">
+          <span class="search__icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+          </span>
+          <input class="input" type="search" name="q" value="{{ filters.q or '' }}"
+                 placeholder="Search by title or studio…" aria-label="Search games">
+        </div>
+        <select class="select" name="sort" aria-label="Sort">
+          {%- for value, label in [('metascore','Metascore, high to low'), ('userscore','Player score, high to low'), ('release_date','Release date, newest'), ('gap','Biggest critic–player gap'), ('title','Title A–Z')] %}
+          <option value="{{ value }}"{% if filters.sort == value %} selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+        <noscript><button class="btn btn--secondary" type="submit">Apply</button></noscript>
+      </div>
+
+      <div id="catalog-results">
+        {% include "fragments/catalog_grid.html" with context %}
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

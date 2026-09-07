@@ -1,0 +1,382 @@
+{
+  "ran_at": "2026-09-07T10:12:39.970592+00:00",
+  "model": "openai/gpt-4o-mini",
+  "dry_run": false,
+  "prompt_versions": {
+    "critic": "critic-v1",
+    "user": "user-v1"
+  },
+  "params_version": "p1",
+  "games": 20,
+  "summaries_attempted": 32,
+  "summaries_published": 32,
+  "claims_total": 193,
+  "claims_accepted": 151,
+  "pv1_claim_level_pct": 78.2,
+  "pv2_block_level_pct": 100.0,
+  "pv1_target_pct": 80.0,
+  "pv2_target_pct": 85.0,
+  "cost_usd": 0.0387,
+  "rows": [
+    {
+      "slug": "aliens-fireteam-elite-2",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 6,
+      "cost_usd": 0.000471
+    },
+    {
+      "slug": "aliens-fireteam-elite-2",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "baldurs-gate-3",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 4,
+      "cost_usd": 0.00122145
+    },
+    {
+      "slug": "baldurs-gate-3",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 8,
+      "claims_accepted": 5,
+      "cost_usd": 0.00162135
+    },
+    {
+      "slug": "bioeden",
+      "audience": "critic",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "bioeden",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "blood-dungeon",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 6,
+      "cost_usd": 0.00048029999999999997
+    },
+    {
+      "slug": "blood-dungeon",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "crimson-moon",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 7,
+      "claims_accepted": 7,
+      "cost_usd": 0.000468
+    },
+    {
+      "slug": "crimson-moon",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "cyberpunk-2077",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 8,
+      "claims_accepted": 6,
+      "cost_usd": 0.00142845
+    },
+    {
+      "slug": "cyberpunk-2077",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 8,
+      "claims_accepted": 6,
+      "cost_usd": 0.0018590999999999998
+    },
+    {
+      "slug": "diablo-immortal",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 5,
+      "cost_usd": 0.00089385
+    },
+    {
+      "slug": "diablo-immortal",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 4,
+      "cost_usd": 0.0012207
+    },
+    {
+      "slug": "elden-ring",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 5,
+      "cost_usd": 0.0012165
+    },
+    {
+      "slug": "elden-ring",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 7,
+      "claims_accepted": 0,
+      "cost_usd": 0.00145245
+    },
+    {
+      "slug": "forspoken",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 6,
+      "cost_usd": 0.001221
+    },
+    {
+      "slug": "forspoken",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 4,
+      "cost_usd": 0.0020223
+    },
+    {
+      "slug": "lous-lagoon",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 7,
+      "claims_accepted": 5,
+      "cost_usd": 0.0004236
+    },
+    {
+      "slug": "lous-lagoon",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "nba-2k27",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 4,
+      "cost_usd": 0.00041055
+    },
+    {
+      "slug": "nba-2k27",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "onimusha-way-of-the-sword",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 4,
+      "claims_accepted": 3,
+      "cost_usd": 0.0011652
+    },
+    {
+      "slug": "onimusha-way-of-the-sword",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "red-dead-redemption-2",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 5,
+      "cost_usd": 0.0010948499999999999
+    },
+    {
+      "slug": "red-dead-redemption-2",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 7,
+      "claims_accepted": 5,
+      "cost_usd": 0.0013568999999999999
+    },
+    {
+      "slug": "redfall",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 5,
+      "cost_usd": 0.0011835
+    },
+    {
+      "slug": "redfall",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 4,
+      "cost_usd": 0.0012
+    },
+    {
+      "slug": "skull-and-bones",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 8,
+      "claims_accepted": 5,
+      "cost_usd": 0.0011353499999999998
+    },
+    {
+      "slug": "skull-and-bones",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 4,
+      "claims_accepted": 3,
+      "cost_usd": 0.00175245
+    },
+    {
+      "slug": "the-blood-of-dawnwalker",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 8,
+      "claims_accepted": 8,
+      "cost_usd": 0.00125775
+    },
+    {
+      "slug": "the-blood-of-dawnwalker",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 7,
+      "claims_accepted": 7,
+      "cost_usd": 0.001485
+    },
+    {
+      "slug": "the-last-of-us-part-ii",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 3,
+      "claims_accepted": 2,
+      "cost_usd": 0.00117945
+    },
+    {
+      "slug": "the-last-of-us-part-ii",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 5,
+      "cost_usd": 0.0018761999999999997
+    },
+    {
+      "slug": "the-legend-of-zelda-tears-of-the-kingdom",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 4,
+      "cost_usd": 0.00124965
+    },
+    {
+      "slug": "the-legend-of-zelda-tears-of-the-kingdom",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 9,
+      "claims_accepted": 8,
+      "cost_usd": 0.0015915
+    },
+    {
+      "slug": "the-lord-of-the-rings-gollum",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 5,
+      "cost_usd": 0.0010968
+    },
+    {
+      "slug": "the-lord-of-the-rings-gollum",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 4,
+      "claims_accepted": 2,
+      "cost_usd": 0.0012417
+    },
+    {
+      "slug": "warcraft-iii-reforged",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 7,
+      "claims_accepted": 4,
+      "cost_usd": 0.000993
+    },
+    {
+      "slug": "warcraft-iii-reforged",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 3,
+      "cost_usd": 0.001425
+    }
+  ]
+}

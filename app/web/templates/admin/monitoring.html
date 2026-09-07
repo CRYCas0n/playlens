@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}Pipeline — {{ app_name }}{% endblock %}
+
+{% block content %}
+{#
+  An operations dashboard that is visibly the same product: same topbar, tokens, type and
+  semantic colours. "Degraded" is not "down" — the header names the affected capability
+  and the unaffected ones, because partial failure is a crawler's normal state
+  (design/PAGES.md section 4).
+#}
+<div class="container" id="monitoring" style="padding-block:var(--sp-10)">
+
+  <div class="sec__head">
+    <div class="sec__title-wrap">
+      <h1 class="t-h1">Pipeline</h1>
+      <p class="rail__purpose" id="system-message">{{ status.system.message }}</p>
+    </div>
+    <div class="row gap-4">
+      <span class="status status--{{ {'healthy':'ok','degraded':'warn','down':'err'}[status.system.status] }}">
+        <span class="status__dot"></span>{{ status.system.status | capitalize }}
+      </span>
+      <span class="status status--idle" id="stream-state"><span class="status__dot"></span>Connecting</span>
+      <button class="btn btn--primary" id="run-now" type="button">Run now</button>
+    </div>
+  </div>
+
+  <div class="row gap-4 row--wrap" style="margin-bottom:var(--sp-8)">
+    <span class="t-caption t-muted">
+      Cadence {{ status.schedule.cadence }} ({{ status.schedule.timezone }}) ·
+      max {{ status.schedule.max_games_per_run }} games per run ·
+      source {{ status.system.source }} ·
+      AI {{ 'on' if status.system.llm_enabled else 'off' }} ·
+      YouTube {{ 'on' if status.system.youtube_enabled else 'off' }}
+    </span>
+  </div>
+
+  <div class="kpis">
+    {% set kpis = [
+      ('Games processed · 24h', 'counters24h.games_processed', status.counters24h.runs ~ ' scheduled runs'),
+      ('Success rate · 24h', 'counters24h.success_rate', (status.counters24h.succeeded | string) ~ ' succeeded'),
+      ('Failures · 24h', 'counters24h.failed', 'skipped duplicates: ' ~ status.counters24h.skipped_duplicates),
+      ('Average run', 'counters24h.avg_duration_ms', 'last run ' ~ (status.schedule.last_run_at | ago)),
+    ] %}
+    {% for label, path, sub in kpis %}
+    <div class="kpi">
+      <span class="kpi__label">{{ label }}</span>
+      {#- The value is resolved in Python: a `{% set %}` inside a `{% for %}` does not
+          escape the loop, and this tile spent a while rendering the whole status object. -#}
+      {%- set value = dotted(status, path) %}
+      <span class="kpi__value" data-kpi="{{ path }}">{{ value if value is not none else '—' }}</span>
+      <span class="kpi__sub">{{ sub }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <section class="sec">
+    <h2 class="t-h3">Current job</h2>
+    {% if status.current_job %}
+    <div class="job">
+      <span class="mono">{{ status.current_job.id }}</span>
+      <span class="badge badge--brand">{{ status.current_job.job_type }}</span>
+      <span class="t-body-sm t-muted">
+        started {{ status.current_job.started_at | ago }}
+        {%- if status.current_job.processed is not none %} ·
+        {{ status.current_job.processed }} / {{ status.current_job.total }} games{% endif %}
+      </span>
+    </div>
+    {% else %}
+    <p class="t-body-sm t-muted">
+      Nothing is running. Next scheduled run
+      {% if status.schedule.next_run_at %}at {{ status.schedule.next_run_at.strftime('%H:%M') }} UTC{% else %}is not scheduled{% endif %}.
+    </p>
+    {% endif %}
+  </section>
+
+  <section class="sec">
+    <h2 class="t-h3">Stages</h2>
+    {#- Modelled on THIS product's pipeline, not a generic job list, so a stall is
+        located in one glance. -#}
+    <div class="stages">
+      {% for stage in status.stages %}
+      <div class="stage stage--{{ stage.state }}">
+        <span class="stage__name">{{ stage.name }}</span>
+        <span class="badge">{{ stage.state }}</span>
+        <span class="t-caption t-muted">
+          {{ stage.queued }} queued · {{ stage.running }} running · {{ stage.failed }} dead
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="two-col">
+    <section class="sec">
+      <h2 class="t-h3">Workers</h2>
+      {% if status.workers %}
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Worker</th><th>Queues</th><th>State</th><th>Active</th><th>Last seen</th></tr></thead>
+        <tbody>
+        {% for worker in status.workers %}
+        <tr>
+          <td class="mono">{{ worker.id }}</td>
+          <td>{{ worker.queues }}</td>
+          <td><span class="status status--{{ 'ok' if worker.state == 'healthy' else 'idle' }}">
+            <span class="status__dot"></span>{{ worker.state }}</span></td>
+          <td>{{ worker.active_jobs }}</td>
+          <td>{{ worker.heartbeat_at | ago }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+      {% else %}
+      <p class="t-body-sm t-muted">No worker has reported in. Queued work is waiting; the
+      catalogue and the API are unaffected.</p>
+      {% endif %}
+    </section>
+
+    <section class="sec">
+      <h2 class="t-h3">Queues</h2>
+      {% if status.queues %}
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Queue</th><th>Status</th><th>Depth</th><th>Oldest</th></tr></thead>
+        <tbody>
+        {% for row in status.queues %}
+        <tr>
+          <td>{{ row.queue }}</td><td>{{ row.status }}</td><td>{{ row.count }}</td>
+          <td>{{ row.oldest | ago if row.oldest else '—' }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+      {% else %}
+      <p class="t-body-sm t-muted">Every queue is empty.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="sec">
+    <h2 class="t-h3">Data quality</h2>
+    {#- Product metrics, added on top of what the assignment lists: an operator needs to
+        know that users are seeing empty cards, not that a worker moved 47 rows. -#}
+    <div class="kpis">
+      <div class="kpi"><span class="kpi__label">Games</span>
+        <span class="kpi__value">{{ status.data_quality.games_total }}</span>
+        <span class="kpi__sub">{{ status.data_quality.with_metascore }} with a critic score</span></div>
+      <div class="kpi"><span class="kpi__label">With summaries</span>
+        <span class="kpi__value">{{ status.data_quality.summary_coverage_pct if status.data_quality.summary_coverage_pct is not none else '—' }}%</span>
+        <span class="kpi__sub">{{ status.data_quality.with_summaries }} games</span></div>
+      <div class="kpi"><span class="kpi__label">With similar games</span>
+        <span class="kpi__value">{{ status.data_quality.similarity_coverage_pct if status.data_quality.similarity_coverage_pct is not none else '—' }}%</span>
+        <span class="kpi__sub">3 or more above the threshold</span></div>
+      <div class="kpi"><span class="kpi__label">Claim acceptance</span>
+        <span class="kpi__value">{{ status.ai.claim_acceptance_pct if status.ai.claim_acceptance_pct is not none else '—' }}%</span>
+        <span class="kpi__sub">${{ '%.2f' | format(status.ai.cost_usd) }} of ${{ status.ai.daily_limit_usd }} · 24h</span></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <h2 class="t-h3">Run history</h2>
+    <div class="table-wrap"><table class="table">
+      <thead><tr><th>Run</th><th>Started</th><th>Duration</th><th>Discovered</th><th>Claimed</th><th>Duplicates</th><th>Result</th></tr></thead>
+      <tbody>
+      {% for run in status.runs %}
+      <tr>
+        <td class="mono">#{{ run.id }}</td>
+        <td>{{ run.started_at | ago }}</td>
+        <td>{{ (run.duration_ms // 1000) ~ 's' if run.duration_ms else 'running' }}</td>
+        <td>{{ run.discovered }}</td>
+        <td>{{ run.claimed }}</td>
+        <td>{{ run.skipped_duplicates }}</td>
+        <td><span class="badge badge--{{ {'succeeded':'success','partial':'warning','failed':'error','running':'brand','cancelled':'warning'}.get(run.status,'') }}">{{ run.status }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" class="t-muted">No runs recorded yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="sec">
+    <h2 class="t-h3">Recent problems</h2>
+    {#- Operator-facing text keeps its technical content. Vagueness is not kindness when
+        the reader's job is to fix it. -#}
+    <div class="log" id="event-feed">
+      {% for problem in status.problems %}
+      <div class="log__row">
+        <span class="mono">{{ problem.ts.strftime('%H:%M:%S') }}</span>
+        <span class="badge badge--{{ 'error' if problem.level == 'error' else 'warning' }}">{{ problem.level }}</span>
+        <span>{{ problem.event }}{% if problem.message %} — {{ problem.message }}{% endif %}</span>
+        <span class="mono t-muted">{{ problem.ref }}</span>
+      </div>
+      {% else %}
+      <div class="log__row t-muted">Nothing to report. No warnings or errors in the last 24 hours.</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

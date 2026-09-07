@@ -1,0 +1,75 @@
+{% import "partials/macros.html" as m %}
+
+{#
+  Returned on its own for in-place filtering, and included by catalog.html for the full
+  page. One template, so the two can never disagree about what a result looks like.
+#}
+
+{%- if active_filters %}
+<div class="row gap-3 row--wrap" style="margin-bottom:var(--sp-6)" aria-label="Active filters">
+  {#- With the filter sheet closed on mobile, this row is the only visible evidence that
+      a filter is on (design/RESPONSIVE.md section 3). -#}
+  {%- for label, href in active_filters %}
+  <a class="chip chip--removable" href="{{ href }}">{{ label }}<span aria-hidden="true">×</span></a>
+  {%- endfor %}
+</div>
+{%- endif %}
+
+<div class="row gap-4" style="margin-bottom:var(--sp-6)">
+  <span class="t-body-sm t-secondary" role="status" aria-live="polite">
+    {%- if results.total == results.items | length -%}
+      {{ results.total }} game{{ '' if results.total == 1 else 's' }}
+    {%- else -%}
+      {{ results.items | length }} of {{ results.total }} games
+    {%- endif -%}
+  </span>
+  <span class="spacer"></span>
+  <span class="t-caption t-muted">Updated hourly</span>
+</div>
+
+{% if results.items %}
+<div class="grid-games">
+  {%- for game in results.items %}{{ m.game_card(game, flag=m.gap_flag(game.gap) if filters.sort == 'gap' else None) }}{% endfor %}
+</div>
+
+{% if results.total > results.limit %}
+{% set pages = (results.total + results.limit - 1) // results.limit %}
+{% set current = results.offset // results.limit + 1 %}
+<nav class="pager" aria-label="Pagination">
+  <a class="pager__link{% if current == 1 %} is-disabled{% endif %}"
+     href="{{ page_url(current - 1) }}" aria-label="Previous page">‹</a>
+  {%- for page in page_numbers(current, pages) %}
+    {%- if page is none %}
+    <span class="pager__gap">…</span>
+    {%- else %}
+    <a class="pager__link{% if page == current %} is-current{% endif %}"
+       href="{{ page_url(page) }}"{% if page == current %} aria-current="page"{% endif %}>{{ page }}</a>
+    {%- endif %}
+  {%- endfor %}
+  <a class="pager__link{% if current >= pages %} is-disabled{% endif %}"
+     href="{{ page_url(current + 1) }}" aria-label="Next page">›</a>
+</nav>
+{% endif %}
+
+{% elif index_is_empty %}
+{#- Case 23: nothing has been crawled yet. Telling a first-time visitor to "widen the
+    score band" would be a lie, and the honest next step is the pipeline page. -#}
+{{ m.empty_state(
+    'No games indexed yet',
+    'The catalogue fills itself from Metacritic on a schedule. Nothing has been indexed
+     so far — the pipeline page shows whether a crawl has run and what it found.',
+    'Open the pipeline', '/admin/monitoring') }}
+{% elif filters.q %}
+{#- Names the query and keeps the filters. Never silently clears them (EDGE_CASES 21). -#}
+{{ m.empty_state(
+    'No game matches “' ~ filters.q ~ '”',
+    'Check the spelling, or try the studio name instead. We index games from Metacritic,
+     so very new or very small releases may not be here yet.',
+    'Clear search', clear_search_url) }}
+{% else %}
+{#- Different copy from the search case: this points at the filters, not the spelling. -#}
+{{ m.empty_state(
+    'No games match these filters',
+    'Try removing a platform or widening the score band.',
+    'Clear all filters', '/games') }}
+{% endif %}

@@ -1,0 +1,23 @@
+GAME: Crimson Moon  [slug=crimson-moon]  PLATFORM: pc  stratum=D-new
+released: 2026-09-01  genres: Action Adventure
+developer: ProbablyMonsters
+ALL PLATFORMS (critic): playstation-5=None; pc=72; xbox-series-x=None
+CRITIC STATS: score=72 n=9 pos=5 neu=4 neg=0
+USER STATS:   score=6.5 n=19 pos=11 neu=3 neg=5
+SAMPLED: critics 9/9 (spread over score range); users 3/1 (pos 1, neu 1, neg 1, unlabeled 0)
+
+=== CRITIC REVIEWS (sampled across score range) ===
+[C00] 80 | CGMagazine | Crimson Moon is a great time, and when everything is considered, is a must try for those that can’t get enough roguelike action.
+[C01] 80 | The Outerhaven | At the end of the day, Crimson Moon doesn’t need to reinvent the Soulslike genre to be worth your time. It knows exactly what it wants to be, a quick, loot-heavy romp you can tackle solo or with a friend, and it does that well enough to earn a spot in your rotation. The camera hiccups and 
+[C02] 78 | COGconnected | For what it is right now, Crimson Moon’s $20 price tag is entirely appropriate. I had a lot of fun with the game’s combat, which supports both solo and duo play. I can easily see developer Probably Monsters adding more levels, monsters, and gear. With a few patches to iron out the camera, 
+[C03] 75 | But Why Tho? | While its less-than-stellar features can be a game-breaker for some, Crimson Moon is an engaging, unique game that offers several great features.
+[C04] 75 | DayOne | Crimson Moon is a game I knew I’d like going in, purely as a big fan of the genres, but I was very glad to see that the game was able to mostly stand on its own as well. From the gorgeous visuals to the responsive combat, I very much enjoyed the ten hours or so it took me to hit credits, a
+[C05] 70 | Combo Infinito | Crimson Moon serves as an exceptionally welcoming gateway into the roguelite genre, cleverly pairing Diablo-inspired angelic aesthetics with forgiving progression mechanics like purifiable gear retention and extra lives. Its flexible difficulty options and impactful loot builds ensure acce
+[C06] 70 | Loot Level Chill | Crimson Moon is no masterpiece in a year replete with them, but it’s a decent debut for ProbablyMonsters, nonetheless.
+[C07] 60 | GamingTrend | Crimson Moon is a decent run-based action game with interesting lore. Its combat lacks the “oomph” to make it a satisfying experience, and there are times that make the experience feel like a slog, but it can be fun if you’re looking for something to enjoy while catching up on podcasts.
+[C08] 58 | Game8 | There was clearly an attempt to make a good game here. While Crimson Moon’s Unreal Engine-driven environments and the great progression system try their best to carry the experience, the final result is constantly suffocated by the convoluted story, a limited weapon pool, and a lack of acc
+
+=== USER REVIEWS (stratified by sentiment) ===
+[U00] 8 | positive | Amazing one for only 20€. If you are looking for a triple A, move out. But, if you are looking for a pleasant game, whith souls mechanicals, online with a friend, and have fun for many hours, this is a really good game. People crys against the keybinding, but you also can change it, that's all, or play with a controlle
+[U01] 7 | neutral | The game itself features a strong story from the start, combat that let's everyone play (You don't have to be soulslike pro to enjoy) and a developer that supports the game **** sure, keybindings are important, but I had no huge issues while playing myself especially not with controller (tested both).
+[U02] 2 | negative | Wait 50% discount and fixing alot of things or buy elden ring instead. Only good about this game is price and game not unique. Dont care about keybinding this game is bad very repetitive very clunky unresponsive controls sluggish soul like solo-coop woke game, awful level design, awful delay unless dodge, very clunky s

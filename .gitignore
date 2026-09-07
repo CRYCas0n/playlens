@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Secrets. .env.example is committed; .env is not.
+.env
+.env.*
+!.env.example
+
+# Local data and caches
+*.db
+*.db-wal
+*.db-shm
+.cache/

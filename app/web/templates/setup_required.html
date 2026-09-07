@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Setup needed — {{ app_name }}{% endblock %}
+
+{% block content %}
+{#
+  Shown when the database is reachable but has no tables — the state a first run
+  produces, because SQLite creates the file on connect.
+
+  It replaced a generic 500 whose text said the problem "usually resolves within a minute
+  or two". That was false: it never resolves on its own, and the reader is one command
+  away. An error page that cannot name the fix is worth less than no error page.
+#}
+<div class="container" style="padding-block:var(--sp-14);max-width:70ch">
+  <span class="badge badge--warning">Setup</span>
+  <h1 class="t-h1" style="margin-top:var(--sp-6)">The database has no tables yet</h1>
+
+  <p class="t-body-lg t-secondary" style="margin-top:var(--sp-6)">
+    Nothing is broken. The database file exists, but the tables that hold games, reviews
+    and jobs have not been created yet — that is a separate step, and it takes one command.
+  </p>
+
+  <p class="t-body" style="margin-top:var(--sp-7)">Run this in the project folder:</p>
+  <pre class="mono" style="background:var(--bg-inset);border:1px solid var(--border-subtle);
+       border-radius:var(--r-md);padding:var(--sp-6);overflow-x:auto"><code>{{ migrate_command }}</code></pre>
+
+  <p class="t-body" style="margin-top:var(--sp-7)">
+    Then, to put some games in it to look at:
+  </p>
+  <pre class="mono" style="background:var(--bg-inset);border:1px solid var(--border-subtle);
+       border-radius:var(--r-md);padding:var(--sp-6);overflow-x:auto"><code>python -m scripts.seed_demo</code></pre>
+
+  <p class="t-body-sm t-muted" style="margin-top:var(--sp-7)">
+    Reload this page afterwards. The full walkthrough is in
+    <span class="mono">docs/QUICKSTART.md</span>, step 5.
+  </p>
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{#
+  Component macros.
+
+  Every class name here comes from design/prototype/assets/app.css, which is copied into
+  app/web/static verbatim. That is the whole point of ADR-017: the markup is ported, the
+  stylesheet is not re-created, so the rendered page cannot drift from styleguide.html.
+#}
+
+{% macro cover(title, url, width=320) %}
+  {#- The fallback is ALWAYS in the DOM, underneath the image. A missing or broken cover
+      then needs no error handling to look right: the image removes itself and the
+      fallback is already there (design/COMPONENTS.md -> CoverFallback). -#}
+  <div class="cover-fallback">
+    <span class="cover-fallback__mark">{{ title | initials }}</span>
+    <span class="cover-fallback__note">Cover unavailable</span>
+  </div>
+  {%- if url %}
+  <img class="cover-img" src="{{ url | img(width) }}" alt="" loading="lazy" onerror="this.remove()">
+  {%- endif %}
+{% endmacro %}
+
+
+{% macro score_chip(score, kind=None, small=False) %}
+  {#- `null` renders as an em dash with a grey ring. NEVER as 0 (ADR-002). -#}
+  <span class="score score-chip {{ score | tier_class }}{% if small %} score-chip--sm{% endif %}">
+    {%- if kind %}<span class="score-chip__kind">{{ kind }}</span>{% endif -%}
+    {%- if score.status == 'valid' -%}
+      {{ score | score_text }}
+    {%- else -%}
+      <span aria-label="Not rated">—</span>
+    {%- endif -%}
+  </span>
+{% endmacro %}
+
+
+{% macro score_badge(score) %}
+  <span class="game-card__badge score {{ score | tier_class }}">
+    <span class="score-badge">
+      <span class="score-badge__value">{% if score.status == 'valid' %}{{ score | score_text }}{% else %}—{% endif %}</span>
+      <span class="score-badge__tier">{{ score.tier_label }}</span>
+    </span>
+  </span>
+{% endmacro %}
+
+
+{% macro gauge(score, small=False) %}
+  {#- Three encodings of one number: the value, the tier word and the arc length. -#}
+  <div class="gauge score {{ score | tier_class }}{% if small %} gauge--sm{% endif %}{% if score.status != 'valid' %} gauge--none{% endif %}"
+       style="--pct:{{ score.normalized or 0 }}"
+       role="img"
+       aria-label="{% if score.status == 'valid' %}{{ score | score_text }}{% else %}Not rated{% endif %}, {{ score.tier_label }}">
+    <div class="gauge__ring"></div>
+    <div class="gauge__body">
+      <span class="gauge__value">{% if score.status == 'valid' %}{{ score | score_text }}{% else %}—{% endif %}</span>
+      <span class="gauge__tier">{{ score.tier_label }}</span>
+    </div>
+  </div>
+{% endmacro %}
+
+
+{% macro score_bar(label, score) %}
+  <div class="score-bar score {{ score | tier_class }}" style="--pct:{{ score.normalized or 0 }}">
+    <span class="score-bar__label">{{ label }}</span>
+    <div class="score-bar__track"><div class="score-bar__fill"></div></div>
+    <span class="score-bar__value">{% if score.normalized is not none %}{{ score.normalized }}{% else %}—{% endif %}</span>
+  </div>
+{% endmacro %}
+
+
+{% macro platform_chips(platforms, limit=None, lead=False) %}
+  {#- Cards show at most two codes plus an overflow token; the game page lists them all. -#}
+  {%- set shown = platforms if limit is none else platforms[:limit] -%}
+  {%- for p in shown %}
+  <span class="plat{% if lead %} plat--lead{% endif %}" title="{{ p.name }}">{{ p.code }}</span>
+  {%- endfor %}
+  {%- if limit is not none and platforms | length > limit %}
+  <span class="plat plat--more" title="{{ platforms[limit:] | map(attribute='name') | join(', ') }}">+{{ platforms | length - limit }}</span>
+  {%- endif %}
+{% endmacro %}
+
+
+{% macro game_card(game, flag=None) %}
+  {#- One anchor wrapping everything, with a composed label. -#}
+  <a class="game-card" href="/games/{{ game.slug }}"
+     aria-label="{{ game.title }} — Metascore {% if game.metascore.status == 'valid' %}{{ game.metascore.value | int }}, {{ game.metascore.tier_label }}{% else %}not rated{% endif %}">
+    <div class="game-card__cover">
+      {{ cover(game.title, game.cover_url, 320) }}
+      {{ score_badge(game.metascore) }}
+      {%- if flag %}<span class="game-card__flag">{{ flag }}</span>{% endif %}
+    </div>
+    <div class="stack gap-3">
+      <span class="game-card__title">{{ game.title }}</span>
+      <span class="game-card__dev">{{ game.developer or '—' }}</span>
+    </div>
+    <div class="game-card__meta">
+      {{ platform_chips(game.platforms, limit=2 if game.platforms | length > 3 else game.platforms | length) }}
+      {%- if game.userscore.status == 'valid' %}{{ score_chip(game.userscore, kind='USR', small=True) }}{% endif %}
+    </div>
+  </a>
+{% endmacro %}
+
+
+{% macro similar_card(item) %}
+  <a class="sim-card" href="/games/{{ item.slug }}">
+    <div class="sim-card__cover">
+      {{ cover(item.title, item.cover_url, 200) }}
+      <span class="sim-card__badge score {{ item.metascore | tier_class }}">{{ score_chip(item.metascore, kind='MC', small=True) }}</span>
+    </div>
+    <span class="sim-card__title">{{ item.title }}</span>
+    {#- The reason chip appears ONLY when the backend supplied one. Never invented
+        (design/README.md non-negotiable 8). -#}
+    {%- if item.reason %}<span class="sim-card__reason">{{ item.reason }}</span>{% endif %}
+  </a>
+{% endmacro %}
+
+
+{% macro gap_flag(gap) %}
+  {%- if gap is not none and gap | abs >= 10 -%}
+    {%- if gap > 0 -%}
+      <span title="Players rate this {{ gap }} points lower than critics">Players ↓{{ gap }}</span>
+    {%- else -%}
+      <span title="Players rate this {{ gap | abs }} points higher than critics">Players ↑{{ gap | abs }}</span>
+    {%- endif -%}
+  {%- endif -%}
+{% endmacro %}
+
+
+{% macro empty_state(title, body, action_label=None, action_href=None, variant='') %}
+  <div class="empty{% if variant %} empty--{{ variant }}{% endif %}">
+    <div class="empty__icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="empty__title">{{ title }}</span>
+    <p class="empty__body">{{ body }}</p>
+    {%- if action_label %}
+    <div class="empty__actions"><a class="btn btn--secondary" href="{{ action_href }}">{{ action_label }}</a></div>
+    {%- endif %}
+  </div>
+{% endmacro %}
+
+
+{% macro pending(badge, text, brand=False) %}
+  <div class="pending">
+    <span class="badge{% if brand %} badge--brand{% endif %}">{{ badge }}</span>
+    <span>{{ text }}</span>
+  </div>
+{% endmacro %}
+
+
+{% macro rail(title, purpose, items, arrows=True, flags=None) %}
+  <section class="sec" data-rail>
+    <div class="sec__head">
+      <div class="sec__title-wrap">
+        <h2 class="t-h2">{{ title }}</h2>
+        {%- if purpose %}<p class="rail__purpose">{{ purpose }}</p>{% endif %}
+      </div>
+      {%- if arrows and items | length > 4 %}
+      <div class="rail__controls">
+        <button class="icon-btn icon-btn--outline" data-rail-dir="prev" aria-label="Scroll left">‹</button>
+        <button class="icon-btn icon-btn--outline" data-rail-dir="next" aria-label="Scroll right">›</button>
+      </div>
+      {%- endif %}
+    </div>
+    <div class="rail__track">
+      {%- for item in items %}
+        {{ game_card(item, flag=gap_flag(item.gap) if flags else None) }}
+      {%- endfor %}
+    </div>
+  </section>
+{% endmacro %}

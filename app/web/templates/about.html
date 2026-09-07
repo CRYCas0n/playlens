@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}How this works — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="container" style="max-width:820px;padding-block:var(--sp-12)">
+  <h1 class="t-h1">How this works</h1>
+
+  <h2 class="t-h2" style="margin-top:var(--sp-10)">Where the data comes from</h2>
+  <p class="t-body-lg t-prose">
+    Scores, descriptions and review texts come from
+    <a class="t-link" href="https://www.metacritic.com/" rel="noopener nofollow" target="_blank">Metacritic</a>.
+    We are an independent project and are not affiliated with Metacritic, with Fandom, or
+    with any platform holder. Every page links back to the original, and we recommend
+    reading it: we interpret the source, we do not replace it.
+  </p>
+  <p class="t-body t-secondary t-prose">
+    We currently hold {{ stats.games_total }} games, {{ stats.games_with_metascore }} of
+    them with a critic score, and {{ stats.games_with_summaries }} with at least one
+    summary. Discovery targets games that have a Metascore: without critic reviews there
+    is no verdict to give and nothing to summarise.
+  </p>
+
+  <h2 class="t-h2" style="margin-top:var(--sp-10)">What the numbers mean</h2>
+  <p class="t-body-lg t-prose">
+    Critic scores are published on a 0–100 scale and player scores on 0–10. We display each
+    in its own scale and compare them on the 0–100 axis, multiplying the player score by
+    ten. Bands: 85+ Excellent, 70–84 Good, 50–69 Mixed, below 50 Poor.
+  </p>
+  <p class="t-body t-secondary t-prose">
+    A missing score is shown as “Not rated”, never as zero. The source sometimes reports a
+    player score of 0 for a game with one or two ratings and no written reviews; treating
+    that as an opinion would be false, so we do not.
+  </p>
+
+  <h2 class="t-h2" style="margin-top:var(--sp-10)">The verdict sentence</h2>
+  <p class="t-body-lg t-prose">
+    The sentence at the top of every game page is <strong>calculated, not written</strong>.
+    It is composed from the two scores, so it can never contradict the numbers beside it
+    and carries no AI label. The same is true of the line comparing platforms.
+  </p>
+
+  <h2 class="t-h2" style="margin-top:var(--sp-10)">The summaries</h2>
+  <p class="t-body-lg t-prose">
+    The summaries <em>are</em> written by a language model, from the reviews themselves and
+    from nothing else. Each point lists how many reviews support it, and a point that
+    cannot cite at least three independent reviews is discarded before publication. So is
+    a claim about change over time whose cited reviews do not span enough dates.
+  </p>
+  <p class="t-body t-secondary t-prose">
+    If a game has no criticism in its reviews, the “most criticised” list is empty and we
+    say so. We would rather show an empty section than invent a complaint to fill it.
+    Where a game has too few written reviews to summarise honestly, no summary appears.
+  </p>
+  <p class="t-body t-secondary t-prose">
+    Player reviews are filtered before summarising: duplicates, very short posts, reviews
+    whose text plainly contradicts their own score, and reviews about matters other than
+    the game. Every summary states how many reviews it used out of how many we hold.
+  </p>
+
+  <h2 class="t-h2" style="margin-top:var(--sp-10)">Similar games</h2>
+  <p class="t-body-lg t-prose">
+    Suggestions are drawn only from games already in our index, so every one of them opens
+    a page like this. They are scored on genre, series, studio, platforms, era, score
+    proximity and the aspects reviewers praised. Where we can name the reason we show it;
+    where we cannot, we show no reason rather than inventing one.
+  </p>
+
+  <h2 class="t-h2" style="margin-top:var(--sp-10)">What we do not do</h2>
+  <p class="t-body t-secondary t-prose">
+    We do not publish a score of our own. Our job is to explain other people's numbers,
+    not to add another one to the pile.
+  </p>
+</div>
+{% endblock %}

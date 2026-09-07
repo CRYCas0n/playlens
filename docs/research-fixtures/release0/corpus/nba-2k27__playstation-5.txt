@@ -1,0 +1,18 @@
+GAME: NBA 2K27  [slug=nba-2k27]  PLATFORM: playstation-5  stratum=E-thin
+released: 2026-09-04  genres: Basketball Sim
+developer: Visual Concepts
+ALL PLATFORMS (critic): pc=None; playstation-5=79; nintendo-switch-2=None; xbox-series-x=None
+CRITIC STATS: score=79 n=5 pos=4 neu=1 neg=0
+USER STATS:   score=0 n=2 pos=1 neu=0 neg=1
+SAMPLED: critics 7/7 (spread over score range); users 0/0 (pos 0, neu 0, neg 0, unlabeled 0)
+
+=== CRITIC REVIEWS (sampled across score range) ===
+[C00] 95 | GamersRD | NBA 2K27 turns out to be a very polished installment that knows how to listen to its fans. The debut of the NBA 2K HQ app is an excellent tool for managing your MyPLAYER and your team without needing to turn on the console, despite how tricky its face scan can be. On the other hand, the in
+[C01] 80 | PlayStation Universe | NBA 2K27 does a great job of expanding the court-level experience, adding more realistic player interactions rather than standardized, simplified animations. A more consolidated City experience gives you the social aspect of street hoop without all the excessive running around. Finally let
+[C02] 80 | But Why Tho? | NBA 2K27 delivers great on-court basketball in an excellent visual package but still has some work to do off the court. The on-court experience took a real leap… but the off-court modes need to match that energy.
+[C03] 80 | Cultura Geek | NBA 2K27 takes meaningful steps toward improving the on-court experience, especially on defense, with more dynamic animations and a new cooperative experience. However, it still carries many of the franchise’s long-standing issues, including invasive microtransactions and pay-to-advance me
+[C04] 60 | ComicBook | It has plenty of good ideas, but doesn’t go far enough to really make them shine as they should. Of course, it doesn’t help that long-running issues and ever-present microtransactions continue to weigh things down. You couldn’t honestly call 2K27 a money-grab because of how many new twists
+[C05] None | GamersRD | NBA 2K27 stands out for its enormous level of visual detail and a highly fluid interface. This installment innovates by integrating the WNBA into The City to allow the first mixed matches in the franchise, in addition to debuting the new Crew HQ. The gameplay achieves an excellent balance:
+[C06] None | IGN | If 2K26’s defense was a benchwarmer, 2k27's is the Most Improved Player. [Review in Progress]
+
+=== USER REVIEWS (stratified by sentiment) ===

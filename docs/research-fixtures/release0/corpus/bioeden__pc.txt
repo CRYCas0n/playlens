@@ -1,0 +1,15 @@
+GAME: BioEden  [slug=bioeden]  PLATFORM: pc  stratum=E-thin
+released: 2026-09-03  genres: Management
+developer: Broken Arms Games
+ALL PLATFORMS (critic): xbox-series-x=None; nintendo-switch-2=None; playstation-5=None; pc=65
+CRITIC STATS: score=65 n=4 pos=0 neu=4 neg=0
+USER STATS:   score=0 n=1 pos=0 neu=1 neg=0
+SAMPLED: critics 4/4 (spread over score range); users 0/0 (pos 0, neu 0, neg 0, unlabeled 0)
+
+=== CRITIC REVIEWS (sampled across score range) ===
+[C00] 70 | Try Hard Guides | BioEden is a fun environmentalist twist on the 4X genre, though you might not get much mileage out of it. While the mechanics are interesting and satisfying, the game lacks the depth to keep it engaging enough to warrant much replayability, and more experienced 4X players may find it trivi
+[C01] 70 | Multiplayer.it | From a technical standpoint, there isn't much to say about BioEden: it is a management game with minimalist graphics where you spend most of your time gazing down from the sky at a hexagonal map filled with stylized objects. Things improve once you enter the domes, where animals and plants
+[C02] 70 | GameBlast | BioEden delivers a pleasant and accessible management experience centered on ecological restoration. Despite repetitive campaign structures and little guild variation, its relaxing atmosphere, forgiving mechanics, and deliberate pacing make it a great pick for casual players or newcomers t
+[C03] 50 | Gameliner | BioEden has a solid and cozy foundation with rewarding planet-cleaning gameplay. However, limited replayability and repetition due to inconsistent systems and a lack of story prevent it from fully delivering on its potential.
+
+=== USER REVIEWS (stratified by sentiment) ===

@@ -1,0 +1,136 @@
+==============================================================================
+PV1 — СОДЕРЖАТЕЛЬНОСТЬ И ТРАССИРУЕМОСТЬ
+==============================================================================
+
+Уровень блока (то, что видит пользователь: одна сторона одной игры).
+Блок засчитан, если >=2 плюса и >=2 минуса имеют валидные ссылки,
+проходят порог подтверждений и названы конкретно, а вывод не водянист.
+
+  блоков всего : 35
+  засчитано    : 26  (74.3%)
+
+  OK   cyberpunk-2077__pc                            critics  +3 -2 вывод:ok
+  OK   cyberpunk-2077__pc                            users    +3 -3 вывод:ok
+  OK   cyberpunk-2077__playstation-4                 critics  +3 -3 вывод:ok
+  OK   cyberpunk-2077__playstation-4                 users    +3 -3 вывод:ok
+  FAIL the-last-of-us-part-ii__playstation-4         critics  +3 -0 вывод:ok
+  OK   the-last-of-us-part-ii__playstation-4         users    +2 -3 вывод:ok
+  OK   warcraft-iii-reforged__pc                     critics  +3 -3 вывод:ok
+  OK   warcraft-iii-reforged__pc                     users    +2 -3 вывод:ok
+  OK   diablo-immortal__ios-iphoneipad               critics  +3 -3 вывод:ok
+  FAIL diablo-immortal__ios-iphoneipad               users    +1 -3 вывод:ok
+  FAIL elden-ring__playstation-5                     critics  +3 -1 вывод:ok
+  OK   elden-ring__playstation-5                     users    +3 -3 вывод:ok
+  FAIL baldurs-gate-3__pc                            critics  +2 -1 вывод:ok
+  OK   baldurs-gate-3__pc                            users    +3 -3 вывод:ok
+  FAIL the-legend-of-zelda-tears-of-the-kingdom__ni  critics  +3 -1 вывод:ok
+  FAIL the-legend-of-zelda-tears-of-the-kingdom__ni  users    +1 -3 вывод:ok
+  FAIL red-dead-redemption-2__playstation-4          critics  +3 -0 вывод:ok
+  FAIL red-dead-redemption-2__playstation-4          users    +3 -1 вывод:ok
+  OK   the-lord-of-the-rings-gollum__playstation-5   critics  +2 -3 вывод:ok
+  OK   the-lord-of-the-rings-gollum__playstation-5   users    +0 -3 вывод:ok
+  OK   redfall__xbox-series-x                        critics  +2 -3 вывод:ok
+  OK   redfall__xbox-series-x                        users    +3 -3 вывод:ok
+  OK   skull-and-bones__playstation-5                critics  +3 -3 вывод:ok
+  FAIL skull-and-bones__playstation-5                users    +1 -2 вывод:ok
+  OK   forspoken__playstation-5                      critics  +2 -3 вывод:ok
+  OK   forspoken__playstation-5                      users    +2 -3 вывод:ok
+  OK   onimusha-way-of-the-sword__playstation-5      critics  +3 -2 вывод:ok
+  OK   the-blood-of-dawnwalker__playstation-5        critics  +3 -2 вывод:ok
+  OK   the-blood-of-dawnwalker__playstation-5        users    +3 -3 вывод:ok
+  OK   aliens-fireteam-elite-2__pc                   critics  +3 -3 вывод:ok
+  OK   crimson-moon__pc                              critics  +2 -3 вывод:ok
+  OK   nba-2k27__playstation-5                       critics  +3 -3 вывод:ok
+  OK   bioeden__pc                                   critics  +2 -3 вывод:ok
+  OK   lous-lagoon__pc                               critics  +3 -3 вывод:ok
+  OK   blood-dungeon__pc                             critics  +3 -2 вывод:ok
+
+------------------------------------------------------------------------------
+Уровень отдельного утверждения (строгий срез)
+  утверждений всего            : 207
+  прошли полностью             : 173  (83.6%)
+  на корпусах >=20 отзывов     : 140/171  (81.9%)
+  на корпусах <20 отзывов      : 33/36  (91.7%)
+  битых ссылок                 : 0
+  формулировок без конкретики  : 10
+
+Утверждения, не прошедшие строгий срез (третьи по счёту тезисы — самые слабые):
+  cyberpunk-2077__pc                        critics neg [подтверждений 2<3] Отдельные системы названы недоделанными — стелс, кас
+  the-last-of-us-part-ii__playstation-4     critics neg [нет конкретики] Несколько рецензий прямо предупреждают, что игра под
+  the-last-of-us-part-ii__playstation-4     critics neg [подтверждений 2<3] Отмечается, что в отдельных решениях игра «зашла сли
+  the-last-of-us-part-ii__playstation-4     critics neg [подтверждений 1<3] Единичные оговорки, что первая часть сильнее в повес
+  the-last-of-us-part-ii__playstation-4     users   pos [нет конкретики] Отдельная группа отзывов защищает игру от волны нега
+  warcraft-iii-reforged__pc                 users   pos [подтверждений 2<3] Пользовательские карты и кастомные режимы называются
+  diablo-immortal__ios-iphoneipad           users   pos [подтверждений 2<3] Отмечается, что монетизация критична только в PvP, а
+  diablo-immortal__ios-iphoneipad           users   pos [подтверждений 2<3] Регулярные обновления и объём содержания
+  elden-ring__playstation-5                 critics neg [подтверждений 2<3] Отмечаются повторяющиеся структуры и однотипные прот
+  elden-ring__playstation-5                 critics neg [подтверждений 2<3] Технические шероховатости и устаревшие визуальные ре
+  baldurs-gate-3__pc                        critics pos [нет конкретики] Объём и свобода подходов к боям и задачам
+  baldurs-gate-3__pc                        critics neg [подтверждений 2<3] Порог входа: сложность и объём названы препятствием 
+  baldurs-gate-3__pc                        critics neg [подтверждений 2<3] Отмечается неравномерность — местами игра «даёт слиш
+  the-legend-of-zelda-tears-of-the-kingdom  critics neg [подтверждений 1<3] Единичные оговорки о несовершенствах, не влияющие на
+  the-legend-of-zelda-tears-of-the-kingdom  critics neg [подтверждений 1<3] Оговорки о том, что игра выходит на стареющем железе
+  the-legend-of-zelda-tears-of-the-kingdom  users   pos [подтверждений 2<3] Объём содержания относительно цены
+  the-legend-of-zelda-tears-of-the-kingdom  users   pos [подтверждений 2<3] Сюжет назван улучшением относительно предшественника
+  red-dead-redemption-2__playstation-4      critics neg [подтверждений 2<3] Отмечается медленный темп и то, что игра требует тер
+  red-dead-redemption-2__playstation-4      critics neg [подтверждений 1<3] Оговорки, что игра понравится не всем и зависит от в
+  red-dead-redemption-2__playstation-4      critics neg [подтверждений 1<3] Отмечается линейность сюжетной части
+  red-dead-redemption-2__playstation-4      users   neg [подтверждений 2<3] Жёсткая постановка сюжетных заданий, наказывающая за
+  red-dead-redemption-2__playstation-4      users   neg [подтверждений 2<3] Длительные переезды между заданиями
+  the-lord-of-the-rings-gollum__playstatio  critics pos [подтверждений 2<3] Отдельные рецензии отмечают удачную озвучку
+  redfall__xbox-series-x                    critics pos [подтверждений 2<3] Часть рецензий считает игру приемлемой в рамках подп
+  skull-and-bones__playstation-5            users   pos [нет конкретики] Совместная игра называется тем, что делает цикл терп
+  skull-and-bones__playstation-5            users   pos [нет конкретики] Часть игроков отмечает, что игра выигрывает, если не
+  skull-and-bones__playstation-5            users   neg [нет конкретики] Постоянное сравнение с Assassin's Creed IV не в поль
+  forspoken__playstation-5                  critics pos [нет конкретики] Часть рецензий считает игру недооценённой основой дл
+  forspoken__playstation-5                  users   pos [нет конкретики] Отмечается, что реальные недостатки были преувеличен
+  onimusha-way-of-the-sword__playstation-5  critics neg [подтверждений 2<3] Претензии к камере и затянутому финалу
+  the-blood-of-dawnwalker__playstation-5    critics neg [нет конкретики] Исполнение отдельных систем названо посредственным н
+  crimson-moon__pc                          critics pos [нет конкретики] Доступность для тех, кто не играет в сложные экшены
+  bioeden__pc                               critics pos [подтверждений 1<2] Визуальная часть внутри куполов
+  blood-dungeon__pc                         critics neg [подтверждений 1<2] Медленный набор силы внутри забега
+
+==============================================================================
+PV2 — ОБЪЯСНЕНИЯ РАЗРЫВА КРИТИКИ/ИГРОКИ
+==============================================================================
+  объяснений сгенерировано : 7
+  отказов                  : 14
+
+  cyberpunk-2077__playstation-4                  ссылок 7/7  обе стороны:да  осторожная формулировка:да
+  the-last-of-us-part-ii__playstation-4          ссылок 9/9  обе стороны:да  осторожная формулировка:да
+  warcraft-iii-reforged__pc                      ссылок 7/7  обе стороны:да  осторожная формулировка:нет
+  diablo-immortal__ios-iphoneipad                ссылок 6/6  обе стороны:да  осторожная формулировка:нет
+  redfall__xbox-series-x                         ссылок 7/7  обе стороны:да  осторожная формулировка:да
+  skull-and-bones__playstation-5                 ссылок 6/6  обе стороны:да  осторожная формулировка:да
+  forspoken__playstation-5                       ссылок 7/7  обе стороны:да  осторожная формулировка:да
+
+Отказы от вердикта по порогу (<20 текстов):
+  onimusha-way-of-the-sword__playstation-5       текстов=10  оценок=77
+  aliens-fireteam-elite-2__pc                    текстов=3  оценок=14
+  crimson-moon__pc                               текстов=1  оценок=19
+  nba-2k27__playstation-5                        текстов=0  оценок=2
+  bioeden__pc                                    текстов=0  оценок=1
+  lous-lagoon__pc                                текстов=0  оценок=1
+  blood-dungeon__pc                              текстов=1  оценок=3
+
+==============================================================================
+ДЕФЕКТЫ ДАННЫХ, ЗАФИКСИРОВАННЫЕ ПРИ РАЗБОРЕ
+==============================================================================
+  zero_userscore_artifact            4
+  score_text_contradiction           3
+  off_topic                          2
+  opinion_shifted_after_patch        2
+  thin_sample_both_sides             2
+  score_reflects_single_issue        1
+  off_topic_review_bombing           1
+  bimodal_distribution               1
+  self_admitted_non_players          1
+  spam                               1
+  gibberish                          1
+  ironic_positive_reviews            1
+  counter_review_bombing             1
+  off_topic_culture_war              1
+  thin_text_sample                   1
+  polarizing_feature                 1
+  review_in_progress                 1
+  thin_sample_critics                1

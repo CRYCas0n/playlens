@@ -1,0 +1,16 @@
+# Development overlay: publishes the database port so a tool on the host can reach it.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
+# Deliberately an overlay rather than the default. Publishing 5432 is convenient and, on
+# any machine with a public interface, it is an open PostgreSQL — so the convenience has
+# to be asked for, not inherited.
+
+name: playlens
+
+services:
+  postgres:
+    ports:
+      # Bound to loopback, not to 0.0.0.0. Even here, "reachable from my laptop" and
+      # "reachable from the network" are different requests.
+      - "127.0.0.1:5432:5432"

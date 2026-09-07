@@ -1,0 +1,14 @@
+# One line ending everywhere. Without this, Windows checkouts rewrite every file to CRLF
+# and the shell script in docker/ stops working inside a Linux container.
+* text=auto eol=lf
+
+# Binary and captured data: never touched.
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
+docs/research-fixtures/** -text
+
+# Generated or vendored: excluded from language statistics and from diffs by default.
+app/web/static/*.css linguist-vendored
+docs/research-fixtures/** linguist-generated

@@ -1,0 +1,19 @@
+GAME: Lou's Lagoon  [slug=lous-lagoon]  PLATFORM: pc  stratum=E-thin
+released: 2026-08-27  genres: Open-World Action
+developer: Tiny Roar
+ALL PLATFORMS (critic): pc=71; nintendo-switch=None; xbox-series-x=None; playstation-5=None; nintendo-switch-2=None
+CRITIC STATS: score=71 n=8 pos=3 neu=5 neg=0
+USER STATS:   score=0 n=1 pos=1 neu=0 neg=0
+SAMPLED: critics 8/8 (spread over score range); users 0/0 (pos 0, neu 0, neg 0, unlabeled 0)
+
+=== CRITIC REVIEWS (sampled across score range) ===
+[C00] 80 | The Wand Report | A fun-filled adventure that strips away the stress of peril and danger, allowing you to explore the islands at your leisure. Oh, and rescue your uncle.
+[C01] 80 | COGconnected | Lou’s Lagoon delivers a wonderfully comforting mix of lighthearted aviation, easygoing resource collection, and engaging mystery. While visual repetition among islander models kind of shrinks the world’s perceived scope, the superb flight mechanics, approachable crafting, and endearing sto
+[C02] 75 | Gamer Social Club | Lou’s Lagoon is warm, welcoming, and consistently charming, and its simple gameplay loop works well for the adventure it sets out to provide. I just wish there was a stronger reason to keep exploring and upgrading once the story had given me everything it had to offer. It may not have quit
+[C03] 70 | Loot Level Chill | It's not going to light the world on fire but Lou's Lagoon is a fun entry into the cosy genre with a compelling gather-and-build loop set in a lovely, vibrant world.
+[C04] 70 | GamingTrend | Whether it’s flying through the air in your seaplane or trekking through the tropics on foot, Lou’s Lagoon is a cozy adventure that is sometimes stunted by an awkwardly integrated crafting system. Despite some overly simplistic quest design, helping out the locals in the archipelago still 
+[C05] 68 | Tech-Gaming | Lou’s Lagoon offers a vibrant tropical getaway, and sucking up resources with the Swirler remains satisfying even after the novelty starts to fade. Unfortunately, cramped storage, sluggish crafting timers, and repetitive errands bring enough baggage to make paradise feel like work. Lagoon 
+[C06] 65 | GameGrin | Lou's Lagoon is a good, relaxing adventure throughout vibrant, tropical islands. However, there are bugs and odd design choices that can prevent you from fully enjoying the experience.
+[C07] 60 | Hardcore Gamer | Lou's Lagoon does a lot of things very well, especially when it focuses on the adventure part of the game. The setting is a lot of fun to explore, the writing is more than entertaining enough that it's easy to overlook the feeling of chasing someone else's legend, and the variety in activi
+
+=== USER REVIEWS (stratified by sentiment) ===

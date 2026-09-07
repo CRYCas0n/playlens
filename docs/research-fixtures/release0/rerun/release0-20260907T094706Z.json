@@ -1,0 +1,94 @@
+{
+  "ran_at": "2026-09-07T09:47:06.843594+00:00",
+  "model": "openai/gpt-4o-mini",
+  "dry_run": false,
+  "prompt_versions": {
+    "critic": "critic-v1",
+    "user": "user-v1"
+  },
+  "params_version": "p1",
+  "games": 4,
+  "summaries_attempted": 3,
+  "summaries_published": 3,
+  "claims_total": 18,
+  "claims_accepted": 13,
+  "pv1_claim_level_pct": 72.2,
+  "pv2_block_level_pct": 100.0,
+  "pv1_target_pct": 80.0,
+  "pv2_target_pct": 85.0,
+  "cost_usd": 0.0022,
+  "rows": [
+    {
+      "slug": "aliens-fireteam-elite-2",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 4,
+      "cost_usd": 0.00045479999999999994
+    },
+    {
+      "slug": "aliens-fireteam-elite-2",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "baldurs-gate-3",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 5,
+      "cost_usd": 0.00128625
+    },
+    {
+      "slug": "baldurs-gate-3",
+      "audience": "user",
+      "status": "failed",
+      "reason": "model output did not match the schema: 1 validation error for SummaryOut\nnegative.2.aspect\n  Input should be 'gameplay', 'graphics', 'story', 'mechanics', 'performance', 'sound_music', 'innovation', '",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "bioeden",
+      "audience": "critic",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "bioeden",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "blood-dungeon",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 4,
+      "cost_usd": 0.0004953
+    },
+    {
+      "slug": "blood-dungeon",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    }
+  ]
+}

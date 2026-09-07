@@ -1,0 +1,26 @@
+GAME: Aliens: Fireteam Elite 2  [slug=aliens-fireteam-elite-2]  PLATFORM: pc  stratum=D-new
+released: 2026-08-25  genres: Third Person Shooter
+developer: Cold Iron Studios
+ALL PLATFORMS (critic): playstation-5=67; xbox-series-x=None; pc=66; nintendo-switch-2=None
+CRITIC STATS: score=66 n=9 pos=1 neu=8 neg=0
+USER STATS:   score=5.9 n=14 pos=5 neu=6 neg=3
+SAMPLED: critics 9/9 (spread over score range); users 6/3 (pos 3, neu 3, neg 0, unlabeled 0)
+
+=== CRITIC REVIEWS (sampled across score range) ===
+[C00] 85 | SECTOR.sk | Cold Iron Studios has returned to familiar territory to deliver an intense, cooperative experience in which a squad of marines must face off against iconic monsters. While the sequel shares the style of the original, it boasts better level design and is more fun when played as a group of f
+[C01] 70 | CGMagazine | Aliens: Fireteam Elite 2 might not be as dramatic of a jump from the original Alien to Aliens, but is nevertheless, a fun and over-the-top action game that fans will enjoy.
+[C02] 70 | Adrenaline | Aliens: Fireteam Elite 2 expands on its predecessor with engaging co-op action, focusing on intense xenomorph horde combat rather than horror. The game features a robust build system, encouraging diverse class and weapon use, and a dynamic difficulty that scales with player skill and teamw
+[C03] 70 | Gamesurf | Aliens: Fireteam Elite 2 is the sequel we would have liked to play five years ago: more complete, more flexible in its class system and finally enjoyable even when the bots have to fill the empty seats. Cold Iron fixes a lot, but still relies too heavily on corridors, terminals and repeate
+[C04] 65 | INVEN | Aliens: Fireteam Elite 2 improves on its predecessor with better visuals and a handful of welcome refinements. However, many of the same shortcomings remain, while poor optimization and the lack of Korean localization make it difficult to fully recommend.
+[C05] 60 | Worth Playing | Your opinion of Aliens: Fireteam Elite 2 will largely depend on whether you've played the first game. Newcomers will find a straightforward co-op shooter that captures the spirit of Aliens, albeit with technical issues, repetitive combat, and little reason to continue after the campaign un
+[C06] 60 | Loot Level Chill | There’s a fun game in Aliens: Fireteam Elite 2 for sure; just don’t expect much in the way of originality.
+[C07] 60 | Gameliner | Aliens: Fireteam Elite 2 offers plenty of replayability through its progression systems, classes, weapons, upgrades, and modifiers, but fails to keep me engaged. While its shallow story, sometimes predictable enemies, limited mission design, poor AI, technical issues, and dull environments
+[C08] 50 | Cubed3 | Fans of the Alien series are often forced to deal with subpar experiences, and this comes in as one of them. Not withstanding various design decisions brought on by the new team, the quality is simply lacking on many aspects. Combat quickly becomes dry, and at how high of a price this game
+
+=== USER REVIEWS (stratified by sentiment) ===
+[U00] 10 | positive | I love the Aline's world, and this game took me back to it. I really enjoyed the environments and gameplay overall in this game. I read some people having some bugs with it, but I didn't run into any of them. I played most of it alone and feel like the robots have improved quite a bit from the 1st game. It builds up fr
+[U01] 10 | positive | Aliens: Fireteam Elite 2 är ett riktigt underhållande actionspel med intensiv stämning, grymma strider och härlig co-op. Ett måste för fans av Alien-universumet! Loved the first game, love this even more.
+[U02] 8 | positive | 15 missions, Tons of weapon and class customization. Ran fine on my machine. If you like Aliens and AFE this game will do it for ya.
+[U03] 7 | neutral | Aliens: Fireteam Elite 2 is okay, but somehow not as good as its far more polished predecessor: it just looks, sounds, and performs worse. It’s almost baffling, as if the two games were somehow released in the wrong order. The gameplay is basically unchanged, though, and that might be enough if you’re just looking for 
+[U04] 6 | neutral | The campaign is very boring. Not interesting story-wise, overly repetitive with the same task and missions, the a.i. is not very interesting or smart and the enemy variety isn't that exciting. The gameplay itself though is decent fun. Had an enjoyable enough time playing with friends. I do wish there was a bit of varie
+[U05] 5 | neutral | A pointless sequel with graphics that are ten years out of date. BTW: all important NPCs are women...
