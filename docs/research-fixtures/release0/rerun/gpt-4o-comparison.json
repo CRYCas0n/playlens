@@ -1,0 +1,166 @@
+{
+  "ran_at": "2026-09-07T10:14:56.980769+00:00",
+  "model": "openai/gpt-4o",
+  "dry_run": false,
+  "prompt_versions": {
+    "critic": "critic-v1",
+    "user": "user-v1"
+  },
+  "params_version": "p1",
+  "games": 8,
+  "summaries_attempted": 11,
+  "summaries_published": 11,
+  "claims_total": 42,
+  "claims_accepted": 36,
+  "pv1_claim_level_pct": 85.7,
+  "pv2_block_level_pct": 100.0,
+  "pv1_target_pct": 80.0,
+  "pv2_target_pct": 85.0,
+  "cost_usd": 0.12,
+  "rows": [
+    {
+      "slug": "aliens-fireteam-elite-2",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 5,
+      "cost_usd": 0.00699
+    },
+    {
+      "slug": "aliens-fireteam-elite-2",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "baldurs-gate-3",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 6,
+      "claims_accepted": 5,
+      "cost_usd": 0.0203475
+    },
+    {
+      "slug": "baldurs-gate-3",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 7,
+      "claims_accepted": 4,
+      "cost_usd": 0.0261225
+    },
+    {
+      "slug": "bioeden",
+      "audience": "critic",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "bioeden",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "blood-dungeon",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 5,
+      "claims_accepted": 3,
+      "cost_usd": 0.007605
+    },
+    {
+      "slug": "blood-dungeon",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "crimson-moon",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 4,
+      "claims_accepted": 4,
+      "cost_usd": 0.00665
+    },
+    {
+      "slug": "crimson-moon",
+      "audience": "user",
+      "status": "skipped_no_data",
+      "reason": "below_threshold",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "cyberpunk-2077",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 7,
+      "claims_accepted": 7,
+      "cost_usd": 0.0227275
+    },
+    {
+      "slug": "cyberpunk-2077",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "first",
+      "claims_total": 8,
+      "claims_accepted": 8,
+      "cost_usd": 0.029585
+    },
+    {
+      "slug": "diablo-immortal",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "identical_input",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "diablo-immortal",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "identical_input",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "elden-ring",
+      "audience": "critic",
+      "status": "fresh",
+      "reason": "identical_input",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "slug": "elden-ring",
+      "audience": "user",
+      "status": "fresh",
+      "reason": "identical_input",
+      "claims_total": 0,
+      "claims_accepted": 0,
+      "cost_usd": 0.0
+    }
+  ]
+}
