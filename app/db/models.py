@@ -119,6 +119,10 @@ class Game(Base):
     title: Mapped[str] = mapped_column(sa.String(512), nullable=False)
     title_norm: Mapped[str] = mapped_column(sa.String(512), nullable=False)
     description: Mapped[str | None] = mapped_column(sa.Text)
+    #: The source's description in Russian. Nullable: the original is what was fetched,
+    #: this is a translation of it, and a game keeps showing the source's own words until
+    #: one exists. Written by `game.translate`, invalidated when `description` changes.
+    description_ru: Mapped[str | None] = mapped_column(sa.Text)
     cover_url: Mapped[str | None] = mapped_column(sa.String(1024))
     card_url: Mapped[str | None] = mapped_column(sa.String(1024))
     # Not necessarily a trailer: the field is whatever video the source attached, often a

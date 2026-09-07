@@ -96,29 +96,42 @@ def _compact(value: Any) -> str:
 
 
 def _ago(value: dt.datetime | None) -> str:
+    """``17 минут назад``. Reads after the word "обновлено", so it needs no preposition."""
     if value is None:
-        return "never"
+        return "никогда"
     delta = dt.datetime.now(dt.UTC) - value
     hours = delta.total_seconds() / 3600
     if hours < 1:
-        return f"{max(1, round(delta.total_seconds() / 60))}m ago"
+        minutes = max(1, round(delta.total_seconds() / 60))
+        return f"{minutes} {_plural_ru(minutes, 'минуту', 'минуты', 'минут')} назад"
     if hours < 24:
-        return f"{round(hours)}h ago"
-    return f"{round(hours / 24)}d ago"
+        whole = round(hours)
+        return f"{whole} {_plural_ru(whole, 'час', 'часа', 'часов')} назад"
+    days = round(hours / 24)
+    return f"{days} {_plural_ru(days, 'день', 'дня', 'дней')} назад"
+
+
+#: Genitive, because the form that reads correctly is "4 февраля 2026", not "февраль".
+#: `strftime('%B')` would give whatever the server's locale is, which on a container is
+#: usually C -- English -- and never depends on the reader.
+_MONTHS_RU = (
+    "января", "февраля", "марта", "апреля", "мая", "июня",
+    "июля", "августа", "сентября", "октября", "ноября", "декабря",
+)
 
 
 def _date_long(value: dt.date | dt.datetime | None) -> str:
-    """``4 Feb 2026``.
+    """``4 февраля 2026``.
 
     The day is formatted by hand: ``%-d`` is a glibc extension that raises
     ``ValueError`` on Windows, and a date filter that works only on the deployment host
     is a filter that crashes every game page on a developer's machine.
     """
     if value is None:
-        return "unknown"
+        return "неизвестно"
     if not hasattr(value, "strftime"):
         return str(value)
-    return f"{value.day} {value.strftime('%b %Y')}"
+    return f"{value.day} {_MONTHS_RU[value.month - 1]} {value.year}"
 
 
 def _duration(seconds: int | None) -> str:

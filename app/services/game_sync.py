@@ -253,6 +253,14 @@ class GameSyncService:
         if changed:
             queue("similarity.recompute", f"similarity:{game_id}:{today}")
 
+        # The description is source text and has to be rendered in Russian for a Russian
+        # page. Queued when there is one and it has not been translated yet; the check
+        # lives in the handler too, so a duplicate job costs a database read, not a call.
+        if self._settings.llm_enabled:
+            game = uow.games.get(game_id)
+            if game is not None and game.description and not game.description_ru:
+                queue("game.translate", f"game.translate:{game_id}")
+
         if self._settings.youtube_enabled:
             game = uow.games.get(game_id)
             if game is not None and game.youtube_searched_at is None:

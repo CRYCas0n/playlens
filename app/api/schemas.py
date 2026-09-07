@@ -188,7 +188,10 @@ class LetsPlayOut(BaseModel):
 class GameDetailOut(BaseModel):
     slug: str
     title: str
+    #: The source's own description, in the source's language.
     description: str | None
+    #: Its Russian rendering, absent until `game.translate` has run for this game.
+    description_ru: str | None = None
     cover_url: str | None
     source_url: str
     developers: list[CompanyOut]

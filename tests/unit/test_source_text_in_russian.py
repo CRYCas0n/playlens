@@ -1,0 +1,82 @@
+"""Text that comes from the source, rendered for a Russian reader.
+
+Three different kinds of English reached the page, and they are not one problem:
+
+* chrome the templates own — fixed by translating them;
+* claims the model writes — fixed by asking for a Russian rendering beside the verified
+  English one;
+* text the *source* publishes: the genre list and the game description.
+
+This file covers the third. A genre is a closed vocabulary, so it is a table: free,
+instant, identical every time, and reviewable by someone who knows the subject. A
+description is prose, so it is a model call — and the page says which of the two texts it
+is showing rather than leaving the reader to wonder whether we edited it.
+"""
+
+from __future__ import annotations
+
+import re
+
+import pytest
+
+from app.domain.genre_names import GENRE_RU, genre_ru
+
+CYRILLIC = re.compile(r"[а-яА-ЯёЁ]")
+
+#: Terms Russian players use in English. Translating these makes them harder to read,
+#: not easier, and each one is a deliberate entry rather than an oversight.
+KEPT_IN_ENGLISH = {"FPS", "RPG", "JRPG", "Action RPG", "Roguelike", "Point-and-click"}
+
+
+class TestGenres:
+    def test_an_unknown_genre_falls_back_to_the_source_wording(self):
+        """A genre this table has not met yet shows the source's own name. An
+        untranslated chip is a small blemish; an invented translation for a term of art
+        is a larger one."""
+        assert genre_ru("Bullet Heaven") == "Bullet Heaven"
+
+    def test_the_table_is_not_a_pass_through(self):
+        translated = [v for k, v in GENRE_RU.items() if v != k]
+        assert len(translated) > 40, "most of the vocabulary should actually be translated"
+
+    @pytest.mark.parametrize("source,russian", sorted(GENRE_RU.items()))
+    def test_each_entry_is_russian_or_deliberately_not(self, source: str, russian: str):
+        if russian in KEPT_IN_ENGLISH:
+            return
+        assert CYRILLIC.search(russian), f"{source!r} -> {russian!r} has no Russian in it"
+
+    def test_no_entry_is_empty(self):
+        for source, russian in GENRE_RU.items():
+            assert russian.strip(), source
+
+
+class TestDescription:
+    def test_the_translation_prompt_keeps_names_alone(self):
+        """A reader searches for "Road to Glory", not for a translation of it."""
+        from app.ai.prompts import build_translation_prompt
+
+        prompt = build_translation_prompt(title="Big Walk", text="A co-op walking game.")
+        assert "Russian" in prompt.system
+        assert "original form" in prompt.system
+        assert "Big Walk" in prompt.context
+        assert "A co-op walking game." in prompt.corpus
+
+    def test_a_translation_is_not_validated_against_reviews(self):
+        """It is source text about the game, not a claim about what reviewers said.
+        Sending it through claim validation would reject every sentence."""
+        from app.ai.schemas import TranslationOut
+
+        assert set(TranslationOut.model_fields) == {"text"}
+
+    def test_the_page_says_which_text_it_is_showing(self):
+        """"Unedited" and "translated" are different promises, and the old copy made the
+        first one while the new path makes the second."""
+        from pathlib import Path
+
+        game = (
+            Path(__file__).resolve().parents[2]
+            / "app" / "web" / "templates" / "game.html"
+        ).read_text(encoding="utf-8")
+        assert "game.description_ru" in game
+        assert "переведённое на русский" in game
+        assert 'lang="en"' in game, "the untranslated fallback must declare its language"

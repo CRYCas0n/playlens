@@ -36,17 +36,17 @@
 {% set pages = (results.total + results.limit - 1) // results.limit %}
 {% set current = results.offset // results.limit + 1 %}
 <nav class="pager" aria-label="Постраничная навигация">
-  <a class="pager__link{% if current == 1 %} is-disabled{% endif %}"
+  <a class="pager__item{% if current == 1 %} is-disabled{% endif %}"
      href="{{ page_url(current - 1) }}" aria-label="Предыдущая страница">‹</a>
   {%- for page in page_numbers(current, pages) %}
     {%- if page is none %}
     <span class="pager__gap">…</span>
     {%- else %}
-    <a class="pager__link{% if page == current %} is-current{% endif %}"
+    <a class="pager__item{% if page == current %} is-current{% endif %}"
        href="{{ page_url(page) }}"{% if page == current %} aria-current="page"{% endif %}>{{ page }}</a>
     {%- endif %}
   {%- endfor %}
-  <a class="pager__link{% if current >= pages %} is-disabled{% endif %}"
+  <a class="pager__item{% if current >= pages %} is-disabled{% endif %}"
      href="{{ page_url(current + 1) }}" aria-label="Следующая страница">›</a>
 </nav>
 {% endif %}

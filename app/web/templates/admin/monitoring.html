@@ -48,7 +48,7 @@
           escape the loop, and this tile spent a while rendering the whole status object. -#}
       {%- set value = dotted(status, path) %}
       <span class="kpi__value" data-kpi="{{ path }}">{{ value if value is not none else '—' }}</span>
-      <span class="kpi__sub">{{ sub }}</span>
+      <span class="kpi__delta">{{ sub }}</span>
     </div>
     {% endfor %}
   </div>
@@ -142,16 +142,16 @@
     <div class="kpis">
       <div class="kpi"><span class="kpi__label">Игр</span>
         <span class="kpi__value">{{ status.data_quality.games_total }}</span>
-        <span class="kpi__sub">{{ status.data_quality.with_metascore }} с оценкой критиков</span></div>
+        <span class="kpi__delta">{{ status.data_quality.with_metascore }} с оценкой критиков</span></div>
       <div class="kpi"><span class="kpi__label">С резюме</span>
         <span class="kpi__value">{{ status.data_quality.summary_coverage_pct if status.data_quality.summary_coverage_pct is not none else '—' }}%</span>
-        <span class="kpi__sub">{{ status.data_quality.with_summaries }} games</span></div>
+        <span class="kpi__delta">{{ status.data_quality.with_summaries }} games</span></div>
       <div class="kpi"><span class="kpi__label">С похожими</span>
         <span class="kpi__value">{{ status.data_quality.similarity_coverage_pct if status.data_quality.similarity_coverage_pct is not none else '—' }}%</span>
-        <span class="kpi__sub">от 3 подтверждений и выше</span></div>
+        <span class="kpi__delta">от 3 подтверждений и выше</span></div>
       <div class="kpi"><span class="kpi__label">Принято утверждений</span>
         <span class="kpi__value">{{ status.ai.claim_acceptance_pct if status.ai.claim_acceptance_pct is not none else '—' }}%</span>
-        <span class="kpi__sub">${{ '%.2f' | format(status.ai.cost_usd) }} of ${{ status.ai.daily_limit_usd }} · 24h</span></div>
+        <span class="kpi__delta">${{ '%.2f' | format(status.ai.cost_usd) }} of ${{ status.ai.daily_limit_usd }} · 24h</span></div>
     </div>
   </section>
 

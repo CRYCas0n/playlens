@@ -202,7 +202,7 @@ ul, ol { padding: 0; list-style: none; }
   transition: all var(--d-fast) var(--e-standard);
 }
 .chip:hover { border-color: var(--border-strong); color: var(--text-primary); }
-.chip[aria-pressed='true'], .chip.is-active {
+.chip[aria-pressed='true'], .chip.is-active, .chip.is-selected {
   background: var(--brand-subtle); border-color: var(--brand-border); color: var(--brand-300);
 }
 .chip[disabled] { opacity: 0.45; pointer-events: none; }
@@ -576,7 +576,7 @@ ul, ol { padding: 0; list-style: none; }
 .summary { display: flex; flex-direction: column; }
 .summary__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-6); padding-bottom: var(--sp-6); border-bottom: 1px solid var(--border-subtle); }
 .summary__who { display: flex; flex-direction: column; gap: var(--sp-3); }
-.summary__eyebrow { font-size: var(--fs-label-sm); font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-muted); }
+.summary__eyebrow, .spotlight__eyebrow { font-size: var(--fs-label-sm); font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-muted); }
 .summary__consensus { font-size: var(--fs-body-lg); line-height: 1.62; color: var(--text-secondary); margin-top: var(--sp-7); }
 .summary__consensus strong { color: var(--text-primary); font-weight: 600; }
 .points { display: flex; flex-direction: column; gap: var(--sp-5); margin-top: var(--sp-7); }
@@ -973,3 +973,66 @@ ul, ol { padding: 0; list-style: none; }
    A page that shifts horizontally on a phone reads as broken however good the content
    is (design/RESPONSIVE.md section 1). */
 html, body { max-width: 100%; overflow-x: hidden; }
+
+
+/* ==========================================================================
+   Rules the ported markup uses and the stylesheet never defined.
+
+   Sixteen class names appeared in templates with no rule behind them. Some were
+   invisible (an eyebrow rendering as body text); three were not. `.visually-hidden`
+   left every filter's raw checkbox and radio drawn beside its chip. `.catalog__layout`
+   left the filter form with no grid, so a submit button meant for narrow screens landed
+   on top of the search field. `.hide-tablet` never hid anything.
+
+   The test that now enumerates them is tests/unit/test_stylesheet_covers_markup.py: a
+   class in a template with no rule in the stylesheet is a defect that renders, and
+   nothing short of opening the page in a browser was catching it.
+   ========================================================================== */
+
+/* Screen-reader-only. The filter chips are labels wrapping a real input; without this
+   the input itself is drawn next to the chip. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+  border: 0;
+}
+
+/* Responsive utilities, matching the breakpoints the rest of the file uses. */
+@media (min-width: 1024px) { .hide-desktop { display: none !important; } }
+@media (max-width: 1023px) { .hide-tablet { display: none !important; } }
+
+/* Inline links in prose. Underlined on hover rather than always, because a paragraph of
+   permanently underlined links is unreadable. */
+.t-link {
+  color: var(--brand-300); text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--d-fast) var(--e-standard), color var(--d-fast) var(--e-standard);
+}
+.t-link:hover { color: var(--brand-200, var(--brand-300)); border-bottom-color: currentColor; }
+
+/* The results column of the catalogue grid. `min-width: 0` is the point of it: without
+   it a wide table or a long unbroken title pushes the grid past the viewport. */
+.catalog__main { min-width: 0; }
+.filters__head {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4);
+  padding-bottom: var(--sp-5); border-bottom: 1px solid var(--border-subtle);
+}
+
+/* A pager arrow at either end of the range is an <a>, so [disabled] cannot apply. */
+.pager__item.is-disabled { opacity: 0.4; pointer-events: none; }
+.pager__item.is-current {
+  background: var(--brand-subtle); border-color: var(--brand-border);
+  color: var(--brand-300); font-weight: 600;
+}
+
+/* Monitoring: the stage strip and the current-job line. */
+.stages { display: flex; flex-wrap: wrap; gap: var(--sp-5); }
+.job {
+  display: flex; align-items: center; gap: var(--sp-5); flex-wrap: wrap;
+  padding: var(--sp-6); border: 1px solid var(--border-subtle);
+  border-radius: var(--r-md); background: var(--bg-surface);
+}
+
+/* Similar games: six across instead of the default, because the cards carry less. */
+.rail__track--6 { grid-auto-columns: 176px; }
+@media (max-width: 1023px) { .rail__track--6 { grid-auto-columns: 156px; } }

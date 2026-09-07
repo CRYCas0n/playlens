@@ -13,6 +13,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
+from app.ai.prompts import build_translation_prompt
+from app.ai.schemas import TranslationOut
 from app.container import Container
 from app.db.uow import UnitOfWork
 from app.domain.enums import Audience, CrawlItemStatus, RunTrigger
@@ -180,6 +182,34 @@ def summary_gap(c: Container, uow: UnitOfWork, payload: dict) -> dict:
     return {"explained": explanation is not None}
 
 
+def game_translate(c: Container, uow: UnitOfWork, payload: dict) -> dict:
+    """Render the source's own description in Russian.
+
+    Source text, not evidence: it is a paragraph about the game rather than a claim about
+    what reviewers said, so nothing here goes through claim validation -- there is no
+    corpus for it to be validated against. The English original is kept and the page says
+    which one it is showing.
+    """
+    game = uow.games.get(payload["game_id"])
+    if game is None or not game.description:
+        return {"status": "skipped", "reason": "no description"}
+    if game.description_ru:
+        return {"status": "skipped", "reason": "already translated"}
+    if not c.llm.enabled:
+        return {"status": "skipped", "reason": "llm disabled"}
+
+    result = c.llm.complete_structured(
+        prompt=build_translation_prompt(title=game.title, text=game.description),
+        schema=TranslationOut,
+        max_tokens=1500,
+    )
+    text = (result.value.text or "").strip()
+    if not text:
+        return {"status": "skipped", "reason": "empty translation"}
+    game.description_ru = text
+    return {"status": "ok", "chars": len(text)}
+
+
 def similarity_recompute(c: Container, uow: UnitOfWork, payload: dict) -> dict:
     return {"published": c.similarity.recompute(uow, payload["game_id"])}
 
@@ -270,6 +300,11 @@ TASKS: dict[str, TaskSpec] = {
             "summary.gap", "ai", summary_gap,
             retryable=True, idempotent=True,
             description="Explain a critic/player gap, only when the data supports it.",
+        ),
+        TaskSpec(
+            "game.translate", "ai", game_translate,
+            retryable=True, idempotent=True,
+            description="Render the source's description in Russian.",
         ),
         TaskSpec(
             "similarity.recompute", "enrich", similarity_recompute,

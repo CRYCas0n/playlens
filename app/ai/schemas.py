@@ -62,6 +62,19 @@ class ClaimOut(BaseModel):
     strength: str = "moderate"
 
 
+class TranslationOut(BaseModel):
+    """One field, because that is all a translation is.
+
+    Deliberately not folded into a summary call: the description is source text about the
+    game, not a claim about what reviewers said, and validating one against the review
+    corpus would reject every sentence of it.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    text: str = Field(default="", max_length=4000)
+
+
 class SummaryOut(BaseModel):
     model_config = ConfigDict(extra="ignore")
 

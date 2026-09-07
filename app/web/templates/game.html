@@ -146,14 +146,22 @@
 
   <section class="sec" id="about">
     <div class="sec__head"><div class="sec__title-wrap"><h2 class="t-h2">Об игре</h2></div></div>
-    {%- if game.description %}
-    <p class="t-body-lg t-prose">{{ game.description }}</p>
+    {#- The translation when there is one, the source's own words when there is not.
+        Which of the two is on screen is stated below rather than left to be guessed. -#}
+    {%- if game.description_ru %}
+    <p class="t-body-lg t-prose">{{ game.description_ru }}</p>
+    {%- elif game.description %}
+    <p class="t-body-lg t-prose" lang="en">{{ game.description }}</p>
     {%- else %}
     <p class="t-body-lg t-muted">Описание для этой игры пока не проиндексировано.</p>
     {%- endif %}
     <div class="row gap-4 row--wrap" style="margin-top:var(--sp-6)">
       <span class="src">Metacritic</span>
-      <span class="t-caption t-muted">Описание и метаданные взяты из карточки источника без изменений.</span>
+      <span class="t-caption t-muted">
+        {%- if game.description_ru %}Описание с карточки источника, переведённое на русский; смысл не менялся.
+        {%- elif game.description %}Описание с карточки источника, приведено на языке оригинала.
+        {%- else %}Метаданные взяты из карточки источника без изменений.{% endif %}
+      </span>
       {#- Deliberately a link and not an embed, and deliberately not called a "trailer":
           the field is whatever video the source attached (C-27, ADR-019 section 4). -#}
       {%- if game.video %}

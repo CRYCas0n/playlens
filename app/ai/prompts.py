@@ -198,3 +198,25 @@ def build_letsplay_prompt(
         context=context,
         corpus=f"{_CORPUS_FRAME}\n{transcript}\n{_CORPUS_END}",
     )
+
+
+_TRANSLATE_RULES = """Translate the game description below into Russian.
+
+- Translate the meaning, not the words: natural Russian, not a calque of the English.
+- Keep the game's title, studio names, platform names and modes in their original form.
+  A reader searches for "Road to Glory", not for a translation of it.
+- Marketing copy stays marketing copy. Do not soften it, sharpen it, summarise it, or add
+  anything the source does not say -- this is the source's own description, and the page
+  says so.
+- Return only the translation.
+"""
+
+
+def build_translation_prompt(*, title: str, text: str) -> RenderedPrompt:
+    """A description is source text, not evidence, so nothing here is validated against
+    reviews -- it is checked by being a faithful rendering of one paragraph."""
+    return RenderedPrompt(
+        system=_TRANSLATE_RULES,
+        context=f"GAME: {title}",
+        corpus="DESCRIPTION:\n" + text,
+    )

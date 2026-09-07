@@ -4,7 +4,10 @@
 {% block title %}Игры — {{ app_name }}{% endblock %}
 
 {% block content %}
-<div class="container catalog">
+{#- `.catalog` is the two-column grid (sidebar + results). It was on the container, which
+    made the page heading a grid item and squeezed it into the 260px sidebar column, and
+    the form carried `.catalog__layout` -- a class the stylesheet has never defined. -#}
+<div class="container">
   <div class="stack gap-5" style="margin-bottom:var(--sp-9)">
     <h1 class="t-h1">Игры</h1>
     <p class="t-body-lg t-secondary" style="max-width:70ch">
@@ -15,7 +18,7 @@
 
   {#- The form works without JavaScript: filtering is progressive enhancement, not a
       requirement (ADR-017). With JS it swaps the grid in place, debounced. -#}
-  <form class="catalog__layout" id="catalog-form" action="/games" method="get">
+  <form class="catalog" id="catalog-form" action="/games" method="get">
     <aside class="filters" aria-label="Фильтры">
       <div class="filters__head">
         <span class="t-label">Фильтры</span>

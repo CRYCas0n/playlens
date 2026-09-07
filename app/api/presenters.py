@@ -30,6 +30,7 @@ from app.api.schemas import (
 )
 from app.config import Settings
 from app.domain.enums import Audience, ClaimSide, ClaimValidation, ScoreStatus
+from app.domain.genre_names import genre_ru
 from app.domain.scores import ScoreValue, critic_score, user_score
 from app.domain.verdict import AXIS_CAPTION, consensus_note, platform_line, verdict_line
 
@@ -180,12 +181,16 @@ def _signals(
     source = summary or fallback
     if source is None:
         return [], []
-    strengths = [c.claim for c in source.positive][:MAX_STRENGTHS]
-    watch_outs = [c.claim for c in source.negative][:MAX_WATCH_OUTS]
+    # `.text`, never `.claim`. `.claim` is the English wording the validator checked
+    # against the reviews; `.text` is what a reader is shown. These chips sit at the very
+    # top of the page, so reaching for the wrong one puts English above the fold on a
+    # Russian site -- which is exactly what happened.
+    strengths = [c.text for c in source.positive][:MAX_STRENGTHS]
+    watch_outs = [c.text for c in source.negative][:MAX_WATCH_OUTS]
     if not strengths and fallback is not None and fallback is not source:
-        strengths = [c.claim for c in fallback.positive][:MAX_STRENGTHS]
+        strengths = [c.text for c in fallback.positive][:MAX_STRENGTHS]
     if not watch_outs and fallback is not None and fallback is not source:
-        watch_outs = [c.claim for c in fallback.negative][:MAX_WATCH_OUTS]
+        watch_outs = [c.text for c in fallback.negative][:MAX_WATCH_OUTS]
     return strengths, watch_outs
 
 
@@ -279,6 +284,7 @@ def game_detail(
         slug=game.mc_slug,
         title=game.title,
         description=game.description,
+        description_ru=game.description_ru,
         cover_url=game.cover_url,
         source_url=game.mc_url,
         developers=[
@@ -291,7 +297,13 @@ def game_detail(
             for gc in game.companies
             if gc.role == "publisher" and gc.company
         ],
-        genres=[GenreOut(slug=gg.genre.slug, name=gg.genre.name) for gg in game.genres if gg.genre],
+        # The source publishes genres in English from a closed list; the stored name
+        # keeps its wording, and the reader gets Russian. See app/domain/genre_names.py.
+        genres=[
+            GenreOut(slug=gg.genre.slug, name=genre_ru(gg.genre.name))
+            for gg in game.genres
+            if gg.genre
+        ],
         esrb_rating=game.esrb_rating,
         release_date=game.release_date,
         release_year=game.premiere_year,

@@ -32,6 +32,7 @@ MAX_ATTEMPTS: dict[str, int] = {
     "crawl.reap": 3,
     "crawl.reconcile": 3,
     "game.sync": 5,
+    "game.translate": 9,
     "reviews.sync": 5,
     "summary.generate": 9,
     "summary.gap": 9,
