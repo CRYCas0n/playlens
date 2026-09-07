@@ -61,7 +61,10 @@ class TestSettings:
         s = Settings(worker_queues="crawl, enrich ,ai", image_allowed_widths="96,200,640")
         assert s.queues == ["crawl", "enrich", "ai"]
         assert s.allowed_image_widths == {96, 200, 640}
-        assert s.allowed_image_hosts == {"www.metacritic.com"}
+        # Metacritic for covers, YouTube for Let'''s Play thumbnails -- the two hosts the
+        # templates actually render. The list is the SSRF control, so it tracks what is
+        # rendered rather than being kept deliberately short.
+        assert s.allowed_image_hosts == {"www.metacritic.com", "i.ytimg.com", "img.youtube.com"}
 
     def test_user_agent_identifies_us_with_a_contact(self):
         ua = Settings(contact_url="https://example.org/contact").user_agent

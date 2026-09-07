@@ -100,6 +100,30 @@ class TestGameDetail:
         game = parse_game_detail(composer_elden_ring, base_url=BASE)
         assert sum(1 for p in game.platforms if p.is_lead) == 1
 
+    def test_two_lead_platforms_from_the_source_become_one(self, composer_elden_ring):
+        """Real data, found in production, not an invented edge case.
+
+        A game came back from Metacritic with `isLeadPlatform` true on two entries -- a
+        re-release carrying the flag alongside the original. The database enforces one
+        (`uq_game_platforms_one_lead`), so the insert failed with a UniqueViolation and
+        the game was never ingested at all: a permanent dead job, one game missing from
+        the catalogue, and nothing on the page to say so.
+
+        The parser normalised the empty case and not this one. Both are the source being
+        inconsistent, and both belong here rather than at the database.
+        """
+        payload = copy.deepcopy(composer_elden_ring)
+        platforms = payload["components"][0]["data"]["item"]["platforms"]
+        assert len(platforms) >= 2, "fixture needs at least two platforms"
+        for entry in platforms[:2]:
+            entry["isLeadPlatform"] = True
+
+        game = parse_game_detail(payload, base_url=BASE)
+        leads = [p for p in game.platforms if p.is_lead]
+        assert len(leads) == 1, [p.slug for p in leads]
+        # The source's own order decides, so the choice is deterministic.
+        assert leads[0].slug == game.platforms[0].slug
+
     def test_userscore_is_absent_from_the_composer(self, composer_elden_ring):
         """`?platform=` is ignored and the composer carries no per-platform user score."""
         game = parse_game_detail(composer_elden_ring, base_url=BASE)

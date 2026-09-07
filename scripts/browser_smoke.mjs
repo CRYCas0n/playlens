@@ -31,20 +31,63 @@ const VIEWPORTS = [
   { name: '390',  width: 390,  height: 844 },
 ];
 
-const PAGES = [
-  { path: '/',                                  name: 'home' },
-  { path: '/games',                             name: 'catalog' },
-  { path: '/games?q=lament',                    name: 'search' },
-  { path: '/games?q=zzzznothing',               name: 'search-empty' },
-  { path: '/games?platform=nintendo-switch-2&score_band=excellent', name: 'filters-empty' },
-  { path: '/games/the-lament-of-thorne-hollow', name: 'game-long-title' },
-  { path: '/games/ashen-veil',                  name: 'game-full' },
-  { path: '/games/quiet-harbor',                name: 'game-no-scores' },
-  { path: '/games/midnight-parade',             name: 'game-no-cover' },
-  { path: '/about',                             name: 'about' },
-  { path: '/admin/monitoring',                  name: 'monitoring' },
-  { path: '/games/nope',                        name: 'not-found' },
-];
+// The pages are chosen from whatever the deployment actually holds, not from a list of
+// slugs. Hardcoded ones came from the demo seed and are all 404s against production --
+// a browser pass that opens twelve missing pages proves only that 404 renders.
+//
+// Each edge case is looked for in the real catalogue, and when the deployment has no
+// example of one it is skipped by name rather than quietly dropped: "no game without a
+// cover" is a fact about the data, and a reviewer should see it said out loud.
+async function resolvePages() {
+  const pages = [
+    { path: '/', name: 'home' },
+    { path: '/games', name: 'catalog' },
+    { path: '/about', name: 'about' },
+    { path: '/admin/monitoring', name: 'monitoring' },
+    { path: '/games/definitely-not-a-game', name: 'not-found' },
+  ];
+
+  let items = [];
+  try {
+    const res = await fetch(BASE + '/api/v1/games?limit=100');
+    items = (await res.json()).items || [];
+  } catch (error) {
+    console.error('could not read the catalogue: ' + error.message);
+  }
+  if (!items.length) {
+    console.error('the catalogue is empty; only the static pages will be checked');
+    return { pages, skipped: ['every game page'] };
+  }
+
+  const skipped = [];
+  const pick = (name, predicate, label) => {
+    const hit = items.find(predicate);
+    if (hit) pages.push({ path: '/games/' + hit.slug, name });
+    else skipped.push(label);
+  };
+
+  const scored = g => g.metascore && g.metascore.value != null;
+  pick('game-full', g => scored(g) && g.userscore && g.userscore.value != null,
+       'a game with both scores');
+  pick('game-no-scores', g => !scored(g), 'a game without a metascore');
+  pick('game-no-cover', g => !g.cover_url, 'a game without a cover');
+
+  const longest = [...items].sort((a, b) => b.title.length - a.title.length)[0];
+  if (longest) pages.push({ path: '/games/' + longest.slug, name: 'game-long-title' });
+
+  // A search term that is in the data, and one that cannot be.
+  const word = (items[0].title.match(/[A-Za-z]{4,}/) || ['game'])[0].toLowerCase();
+  pages.push({ path: '/games?q=' + word, name: 'search' });
+  pages.push({ path: '/games?q=zzzznothing', name: 'search-empty' });
+  pages.push({
+    path: '/games?platform=nintendo-switch-2&score_band=excellent',
+    name: 'filters-empty',
+  });
+
+  return { pages, skipped, sample: items[0].slug };
+}
+
+const { pages: PAGES, skipped: SKIPPED, sample: SAMPLE_SLUG } = await resolvePages();
 
 const failures = [];
 const rows = [];
@@ -137,7 +180,7 @@ const page = await context.newPage();
 const jsErrors = [];
 page.on('pageerror', e => jsErrors.push(e.message));
 
-await page.goto(BASE + '/games/ashen-veil', { waitUntil: 'domcontentloaded' });
+await page.goto(BASE + '/games/' + (SAMPLE_SLUG || 'nope'), { waitUntil: 'domcontentloaded' });
 const themeButton = page.locator('[data-theme-toggle]');
 if (await themeButton.count()) {
   const before = await page.evaluate(() => document.documentElement.getAttribute('data-theme'));
@@ -163,6 +206,10 @@ if (jsErrors.length) failures.push(`monitoring page JS errors: ${jsErrors.slice(
 await context.close();
 await browser.close();
 
+if (SKIPPED.length) {
+  console.log('not present in this deployment: ' + SKIPPED.join(', '));
+  console.log('');
+}
 console.log('viewport  page                 http  overflow  jsErrors');
 for (const r of rows) {
   console.log(

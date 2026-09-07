@@ -129,11 +129,24 @@ def parse_game_detail(payload: dict[str, Any], *, base_url: str) -> GameDetail:
         )
 
     platforms = tuple(_platform_scores(p) for p in product.platforms)
-    if platforms and not any(p.is_lead for p in platforms):
-        # Every game must have exactly one lead so the "main rating" is well defined.
-        # When the source does not mark one, the first platform is used and the choice is
-        # visible in the data rather than hidden in a template.
+    # Every game must have exactly one lead so that "the main rating" is well defined,
+    # and the source guarantees neither end of that. Games arrive with no lead, and --
+    # found on real data, not imagined -- with two: a re-release carrying isLeadPlatform
+    # alongside the original. The database says one (uq_game_platforms_one_lead), so a
+    # game with two leads was rejected outright and never ingested at all.
+    #
+    # Both directions are normalised here, in the parser, where the source's shape is
+    # already being turned into ours. The choice is the source's own order, which is
+    # deterministic and stays visible in the data.
+    lead_positions = [i for i, p in enumerate(platforms) if p.is_lead]
+    if platforms and not lead_positions:
         platforms = (replace(platforms[0], is_lead=True), *platforms[1:])
+    elif len(lead_positions) > 1:
+        keep = lead_positions[0]
+        platforms = tuple(
+            replace(p, is_lead=(i == keep)) if p.is_lead else p
+            for i, p in enumerate(platforms)
+        )
 
     cover = image_url(_bucket(product.images, "mainImage"), base_url)
     card = image_url(_bucket(product.images, "cardImage"), base_url)

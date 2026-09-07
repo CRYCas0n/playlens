@@ -186,6 +186,27 @@ class TestImageProxy:
         assert not _host_is_allowed("https://www.metacritic.com.evil.example/a.jpg",
                                     db_settings)
 
+    def test_every_host_the_templates_render_is_on_the_allow_list(self, db_settings):
+        """The allow-list and the templates have to agree, and they did not.
+
+        The Let's Play section renders YouTube thumbnails, which come from i.ytimg.com,
+        and the list held only metacritic. So every game page with a video asked the
+        proxy for an image and got a 400 back -- a broken thumbnail on the page, found in
+        a browser against production and by nothing else. An allow-list shorter than what
+        the application renders is not stricter security, it is a bug.
+        """
+        from app.web.images import _host_is_allowed
+
+        for url in (
+            "https://www.metacritic.com/a/img/catalog/provider/7/2/7-178.jpg",
+            "https://i.ytimg.com/vi/7FEaByObPFk/maxresdefault.jpg",
+        ):
+            assert _host_is_allowed(url, db_settings), url
+
+        # And the widening is still exact-match, not a suffix.
+        assert not _host_is_allowed("https://i.ytimg.com.evil.example/a.jpg", db_settings)
+        assert not _host_is_allowed("https://evil-i.ytimg.com/a.jpg", db_settings)
+
 
 # ---------------------------------------------------------------- T5/T6: exposure
 

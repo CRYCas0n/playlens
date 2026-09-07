@@ -219,7 +219,11 @@ class Settings(BaseSettings):
 
     # ---------------------------------------------------------------- images (ADR-017)
     image_proxy_enabled: bool = True
-    image_allowed_hosts: str = "www.metacritic.com"
+    # The allow-list is the SSRF control (ADR-019), so it is a list of hosts this
+    # application is known to render, not a convenience. i.ytimg.com is on it because the
+    # Let's Play section renders YouTube thumbnails: without it every game page with a
+    # video asked the proxy for an image it then refused, and showed a broken one.
+    image_allowed_hosts: str = "www.metacritic.com,i.ytimg.com,img.youtube.com"
     image_allowed_widths: str = "96,200,320,480,640"
     image_cache_dir: str = ".cache/img"
     image_cache_max_mb: int = 512

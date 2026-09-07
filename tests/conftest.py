@@ -17,6 +17,26 @@ def load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _settings_ignore_the_developers_env_file():
+    """Tests read the code's defaults, never whatever is in the working copy's .env.
+
+    `Settings` loads `.env` by design, and pydantic-settings does that wherever a
+    Settings is constructed -- including inside a test. So a developer's local file
+    silently overrode defaults under test: a stale IMAGE_ALLOWED_HOSTS made a passing
+    assertion fail here while it passed in CI, which has no .env at all. A suite whose
+    result depends on an untracked file is not telling you about the code.
+    """
+    from app.config import Settings
+
+    previous = Settings.model_config.get("env_file")
+    Settings.model_config["env_file"] = None
+    try:
+        yield
+    finally:
+        Settings.model_config["env_file"] = previous
+
+
 @pytest.fixture(scope="session")
 def repo_root() -> Path:
     return REPO_ROOT
