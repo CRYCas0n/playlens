@@ -149,37 +149,81 @@ def cmd_seed(args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _summarise_one(container, uow, game) -> dict[str, str]:
+    from app.domain.enums import Audience
+
+    lead = next((gp for gp in game.platforms if gp.is_lead), None)
+    if lead is None:
+        return {"error": "no lead platform"}
+    out = {}
+    for audience in (Audience.CRITIC, Audience.USER):
+        outcome = container.summaries.generate(
+            uow, game_id=game.id, game_platform_id=lead.id, audience=audience
+        )
+        out[audience.value] = f"{outcome.status.value} ({outcome.reason or '-'})"
+    return out
+
+
 def cmd_summarise(args: argparse.Namespace) -> int:
-    """Generate summaries for one game, now, without waiting for the queue."""
+    """Generate summaries now, without waiting for the queue.
+
+    `--all` exists because of a gap the prompt-version bump exposed. A summary's
+    fingerprint includes the prompt version, so changing the prompt makes every existing
+    summary stale -- but nothing *enqueues* the rewrite. `summary.generate` is queued by
+    `reviews.sync`, which only runs when the reviews themselves change. A game nobody
+    reviews again would have kept its old summary indefinitely.
+
+    Generation is skipped where the fingerprint still matches, so a rerun costs nothing
+    for summaries that are already current, and the daily cost ceiling stops the pass
+    rather than the pass ignoring it.
+    """
     if (code := _require_schema()) is not None:
         return code
-
-    from app.domain.enums import Audience
 
     settings = get_settings()
     if not settings.llm_enabled:
         print("LLM_ENABLED is false; nothing to do.", file=sys.stderr)
         return EXIT_USAGE
 
+    if not args.all and not args.slug:
+        print("pass --slug SLUG or --all", file=sys.stderr)
+        return EXIT_USAGE
+
     container = get_container()
+
+    if args.slug:
+        with container.uow() as uow:
+            game = uow.games.get_by_slug(args.slug)
+            if game is None:
+                print(f"no game with slug {args.slug!r}", file=sys.stderr)
+                return EXIT_USAGE
+            results = _summarise_one(container, uow, game)
+        _emit({"game": args.slug, **results}, as_json=args.json)
+        return EXIT_OK
+
+    # One transaction per game: a cost-limit stop mid-pass must keep what it has done.
     with container.uow() as uow:
-        game = uow.games.get_by_slug(args.slug)
-        if game is None:
-            print(f"no game with slug {args.slug!r}", file=sys.stderr)
-            return EXIT_USAGE
-        lead = next((gp for gp in game.platforms if gp.is_lead), None)
-        if lead is None:
-            print(f"{args.slug} has no lead platform", file=sys.stderr)
-            return EXIT_USAGE
+        slugs = sorted(uow.games.known_slugs())[: args.limit]
 
-        results = {}
-        for audience in (Audience.CRITIC, Audience.USER):
-            outcome = container.summaries.generate(
-                uow, game_id=game.id, game_platform_id=lead.id, audience=audience
-            )
-            results[audience.value] = f"{outcome.status.value} ({outcome.reason or '-'})"
+    counts: dict[str, int] = {}
+    for position, slug in enumerate(slugs, start=1):
+        try:
+            with container.uow() as uow:
+                game = uow.games.get_by_slug(slug)
+                if game is None:
+                    continue
+                results = _summarise_one(container, uow, game)
+        except Exception as exc:  # one bad game must not end a catalogue-wide pass
+            counts["error"] = counts.get("error", 0) + 1
+            print(f"[{position}/{len(slugs)}] {slug}: {type(exc).__name__}", file=sys.stderr)
+            continue
+        for value in results.values():
+            key = value.split(" ")[0]
+            counts[key] = counts.get(key, 0) + 1
+        if not args.json:
+            print(f"[{position}/{len(slugs)}] {slug}: {results}")
 
-    _emit({"game": args.slug, **results}, as_json=args.json)
+    _emit({"games": len(slugs), **counts}, as_json=args.json)
     return EXIT_OK
 
 
@@ -239,8 +283,14 @@ def build_parser() -> argparse.ArgumentParser:
     seed.add_argument("--limit", type=int, default=500)
     seed.set_defaults(func=cmd_seed)
 
-    summarise = sub.add_parser("summarise", help="generate summaries for one game")
-    summarise.add_argument("--slug", required=True)
+    summarise = sub.add_parser("summarise", help="generate summaries, one game or all")
+    summarise.add_argument("--slug")
+    summarise.add_argument(
+        "--all",
+        action="store_true",
+        help="every game; skips summaries whose fingerprint still matches",
+    )
+    summarise.add_argument("--limit", type=int, default=1000)
     summarise.set_defaults(func=cmd_summarise)
 
     sub.add_parser("purge", help="apply retention now").set_defaults(func=cmd_purge)
