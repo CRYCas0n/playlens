@@ -69,6 +69,13 @@ services:
       LLM_API_KEY: ${LLM_API_KEY:-}
       YOUTUBE_ENABLED: ${YOUTUBE_ENABLED:-false}
       YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+    # The image's healthcheck curls localhost:8000, which only the api serves. Inherited
+    # here it asks a question this container cannot answer and reports unhealthy forever
+    # while the worker is doing its job perfectly. Worker liveness is a real signal and
+    # it already exists: workers heartbeat to the database, and /api/v1/monitoring/status
+    # reports `degraded` when none is reporting. That is the check to trust.
+    healthcheck:
+      disable: true
     # Scale freely: workers claim jobs with SKIP LOCKED, so two of them never take the
     # same job, and a worker that dies has its lease reclaimed after JOB_LEASE_TTL_S.
     deploy:
@@ -86,6 +93,11 @@ services:
       DATABASE_URL: postgresql+psycopg://playlens:playlens@postgres:5432/playlens
       ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN in .env before starting}
       CRAWL_ENABLED: ${CRAWL_ENABLED:-true}
+    # Same as the worker: no web server here, so the inherited HTTP healthcheck is
+    # permanently and misleadingly red. The scheduler's real liveness is the last-fired
+    # slot, which monitoring reads.
+    healthcheck:
+      disable: true
     # EXACTLY ONE. Two schedulers would enqueue each tick twice; the enqueue is
     # idempotent by key so the duplicates are skipped rather than run, but the second
     # process is doing nothing useful. Do not scale this service.

@@ -237,6 +237,18 @@ class TestTheyAgreeWithTheRepository:
             api = overlay.get("services", {}).get("api", {})
             assert "ports" not in api, f"{name} adds a second binding for the api"
 
+    def test_only_the_api_carries_the_http_healthcheck(self):
+        """The image defines one healthcheck -- an HTTP GET -- and all three roles share
+        the image. The worker and the scheduler do not serve HTTP, so they inherited a
+        check they can never pass and sat there marked unhealthy while working normally.
+        A permanently red light is worse than no light: it is the one you learn to
+        ignore."""
+        yaml = pytest.importorskip("yaml")
+        base = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
+        for role in ("worker", "scheduler"):
+            assert base["services"][role]["healthcheck"] == {"disable": True}, role
+        assert "healthcheck" not in base["services"]["api"], "the api keeps the image's"
+
     def test_no_cpu_limit_exceeds_a_single_core(self):
         """Docker refuses outright: "range of CPUs is from 0.01 to 1.00, as there are
         only 1 CPUs available". The overlay asked for 1.5 and the api would not start on
