@@ -231,12 +231,52 @@ def similarity_refresh_stale(c: Container, uow: UnitOfWork, payload: dict) -> di
     return {"queued": len(game_ids)}
 
 
+def _queue_next(uow: UnitOfWork, *, job_type: str, game_id: int, key: str) -> bool:
+    """Hand the game to the next step of the Let's Play chain.
+
+    The three tasks existed, were registered, and were never linked: `discover` selected
+    a video and stopped. In production that meant 180 successful discoveries, 2,285
+    videos ranked, and not one transcript ever attempted -- the feature looked alive from
+    every angle except the only one that matters.
+    """
+    return uow.jobs.enqueue(
+        job_type=job_type,
+        idempotency_key=key,
+        queue="enrich" if job_type == "youtube.transcript" else "ai",
+        game_id=game_id,
+        payload={"game_id": game_id},
+        priority=4,
+    ).created
+
+
 def youtube_discover(c: Container, uow: UnitOfWork, payload: dict) -> dict:
-    return c.letsplay.discover(uow, game_id=payload["game_id"])
+    game_id = payload["game_id"]
+    result = c.letsplay.discover(uow, game_id=game_id)
+    if result.get("status") == "selected":
+        # Keyed by the video, so re-discovering the same one does not re-fetch it, and
+        # picking a different video does queue a fresh attempt.
+        result["queued_transcript"] = _queue_next(
+            uow,
+            job_type="youtube.transcript",
+            game_id=game_id,
+            key=f"youtube.transcript:{result['video_id']}",
+        )
+    return result
 
 
 def youtube_transcript(c: Container, uow: UnitOfWork, payload: dict) -> dict:
-    return c.letsplay.fetch_transcript(uow, game_id=payload["game_id"])
+    game_id = payload["game_id"]
+    result = c.letsplay.fetch_transcript(uow, game_id=game_id)
+    # "cached" counts: a transcript we already hold still has no summary written from it
+    # if this is the first time the chain has run to the end.
+    if result.get("status") in ("available", "cached"):
+        result["queued_summary"] = _queue_next(
+            uow,
+            job_type="youtube.summarise",
+            game_id=game_id,
+            key=f"youtube.summarise:{game_id}:{dt.date.today().isoformat()}",
+        )
+    return result
 
 
 def youtube_summarise(c: Container, uow: UnitOfWork, payload: dict) -> dict:
@@ -257,6 +297,8 @@ def maintenance_cleanup(c: Container, uow: UnitOfWork, payload: dict) -> dict:
         "snapshots": uow.snapshots.purge_unreferenced(
             now - dt.timedelta(days=settings.snapshot_retention_days)
         ),
+        # Worker ids are hostname:pid, so a restart leaves the old row behind forever.
+        "workers": uow.workers.purge_old(now - dt.timedelta(hours=6)),
     }
 
 

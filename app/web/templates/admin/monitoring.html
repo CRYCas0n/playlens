@@ -101,8 +101,8 @@
         <tr>
           <td class="mono">{{ worker.id }}</td>
           <td>{{ worker.queues }}</td>
-          <td><span class="status status--{{ 'ok' if worker.state == 'healthy' else 'idle' }}">
-            <span class="status__dot"></span>{{ worker.state }}</span></td>
+          <td><span class="status status--{{ 'ok' if worker.state == 'healthy' else 'warn' }}">
+            <span class="status__dot"></span>{{ 'на связи' if worker.state == 'healthy' else 'не отвечает' }}</span></td>
           <td>{{ worker.active_jobs }}</td>
           <td>{{ worker.heartbeat_at | ago }}</td>
         </tr>

@@ -112,9 +112,13 @@ class MonitoringService:
                 {
                     "id": w.worker_id,
                     "queues": w.queues,
+                    # "gone", not "idle". A worker that has missed its heartbeat window
+                    # is not resting between jobs -- the process is not there. Calling
+                    # that idle is how a row for a container deleted hours ago reads as
+                    # a healthy-ish worker.
                     "state": "healthy"
                     if (now - w.heartbeat_at).total_seconds() < WORKER_ALIVE_SECONDS
-                    else "idle",
+                    else "gone",
                     "active_jobs": w.active_jobs,
                     "heartbeat_at": w.heartbeat_at,
                     "uptime_s": int((now - w.started_at).total_seconds()),

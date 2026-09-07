@@ -386,3 +386,19 @@ class WorkerRepository:
                 sa.select(WorkerHeartbeat).order_by(WorkerHeartbeat.worker_id)
             ).scalars()
         )
+
+    def purge_old(self, before: dt.datetime) -> int:
+        """Forget workers that stopped reporting long ago.
+
+        A worker id is hostname:pid, so every container restart mints a new one and the
+        old row stays forever. After a day of deploys the monitoring page listed 29
+        workers for a service running one, all but the newest marked "idle" -- which is
+        the wrong word for a process that no longer exists, and the sort of permanently
+        wrong indicator an operator learns to ignore.
+
+        The threshold is generous: a worker quiet for hours is gone, not resting.
+        """
+        result = self.session.execute(
+            sa.delete(WorkerHeartbeat).where(WorkerHeartbeat.heartbeat_at < before)
+        )
+        return int(result.rowcount or 0)
