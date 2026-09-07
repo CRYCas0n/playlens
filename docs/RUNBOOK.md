@@ -185,6 +185,22 @@ curl -X POST localhost:8000/api/v1/admin/jobs/<id>/retry -H "X-Admin-Token: $ADM
 Look at `error_message` first. A job that died five times usually has a real cause, and
 retrying it a sixth time is how you spend an afternoon.
 
+### Backfill Russian for a catalogue that predates it
+
+```bash
+python -m app.cli translate     # source descriptions
+python -m app.cli summarise --all   # claims and headings
+```
+
+Both exist for the same reason. The work is queued by whatever changes the data —
+`game.sync` for a description, `reviews.sync` for a summary — so a game that nothing
+touches again keeps whatever it had. Neither command generates inline; both queue, so
+neither can race the worker, and both are free to run twice.
+
+Genres need neither: they are a table in `app/domain/genre_names.py`. A genre the table
+has not met shows the source's own name, which is a small blemish rather than an invented
+translation of a term of art.
+
 ### Rewrite every summary after a prompt change
 
 ```bash
