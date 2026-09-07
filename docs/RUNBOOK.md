@@ -102,6 +102,25 @@ Do **not** raise `SCHEMA_DRIFT_THRESHOLD` to make the alert stop, and do not set
 (which disables the circuit entirely). The threshold is what stands between a source
 change and a catalogue full of blank games.
 
+### `summary.generate` jobs dying instantly, six attempts each
+
+Check the error class before assuming a model problem:
+
+```sql
+select error_class, count(*), left(max(error_message), 120)
+from jobs where status = 'dead' group by 1 order by 2 desc;
+```
+
+**`IntegrityError` on `uq_summary_fingerprint`** — two jobs for one game, both recording
+"nothing to summarise". Fixed in the service; if it reappears, the guard in
+`_record_skip` is not seeing the row it is about to write.
+
+**`RetryableError` with "Request too large ... tokens per min"** — `AI_MAX_INPUT_TOKENS`
+is above the account's TPM allowance, so the largest corpora can never be summarised.
+Lower it below the limit minus `LLM_MAX_OUTPUT_TOKENS`. A new OpenAI account is 30,000
+TPM on gpt-4o; 20,000 is safe there. This is now reported as a permanent error naming the
+setting, rather than retried six times.
+
 ### AI cost approaching the daily limit
 
 `GET /api/v1/monitoring/status` → `ai.cost_usd` against `ai.daily_limit_usd`.

@@ -366,6 +366,16 @@ one is invisible on the machine the code was written on.
    keeps its old summary forever. Found by reading the database after the deploy: 111
    model calls, zero of them regenerations.
 
+10. **A skip recorded twice was treated as a failure.** Below the review threshold there
+    is no fingerprint to check against, and the skip row is invisible to both guards, so
+    a second job for the same game inserted the same key and `uq_summary_fingerprint`
+    refused it — 119 dead jobs in 112 seconds, six attempts each, none reaching a model.
+11. **A 429 that retrying cannot fix.** "Request too large ... tokens per min (TPM):
+    Limit 30000" means the request exceeds the account's whole per-minute allowance;
+    the shipped `AI_MAX_INPUT_TOKENS` default is 60,000, twice what a new OpenAI account
+    permits. It failed exactly the games with the largest corpora — the ones most worth
+    summarising.
+
 The sixth is the serious one. The service looked completely healthy — green crawl, green
 API, games arriving — and did almost nothing. Both sides of that seam had tests; the join
 between them had none.
