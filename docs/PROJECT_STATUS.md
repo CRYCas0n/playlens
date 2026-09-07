@@ -3,7 +3,7 @@
 **Date:** 2026-09-07 · **Repository:** <https://github.com/CRYCas0n/playlens>
 **Production:** <https://playlens.45.67.202.162.sslip.io> — deployed, serving, ingesting
 
-**CI:** green on GitHub Actions · **Run:** `833 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
+**CI:** green on GitHub Actions · **Run:** `860 tests` · `ruff: clean` · `362 integration tests green on PostgreSQL 16.4` ·
 `smoke: 15 routes` · Release 0 on all 20 games against a live model
 
 Statuses mean one thing each:
@@ -34,6 +34,7 @@ Statuses mean one thing each:
 | **AI — OpenAI** | VERIFIED | 26 offline tests plus live calls. Full lifecycle: 401, 404, 429, 5xx, timeout, malformed JSON, prose instead of a call, unknown enum |
 | **AI — Anthropic** | IMPLEMENTED — NOT VERIFIED | No Anthropic key. Same protocol the OpenAI adapter now exercises for real |
 | **AI — Release 0, 20 games** | VERIFIED | gpt-4o: **PV1 85.7%**, PV2 100%, $0.015/game. gpt-4o-mini: PV1 78.2%, below target. `docs/RELEASE0_FINAL.md` |
+| **AI — Russian claims** | IMPLEMENTED — PARTLY VERIFIED | The model returns the English claim (validated, as Release 0 measured) and its Russian rendering (displayed). Regeneration of the existing catalogue is paced by the $5/day ceiling |
 | **AI — in production** | VERIFIED | 48 live calls, $0.51 of a $5/day ceiling, 233 claims accepted and **27 rejected by evidence validation** — 89.6% acceptance on real reviews |
 | **AI — evidence validation** | VERIFIED | 42 rejections on real data across 6 classes; 7 invented references caught, 0 published |
 | **AI — cost ceiling** | VERIFIED | Enforced before the call, not after. 9 tests |
@@ -44,6 +45,8 @@ Statuses mean one thing each:
 | **Search, filters, sorting** | VERIFIED | Both dialects. Unrated never floats to the top in either direction |
 | **UI — data rules** | VERIFIED | All 28 cases of `design/EDGE_CASES.md`, 44 tests |
 | **UI — rendering** | VERIFIED | Real Chromium × 4 widths, against **the live public site**, no horizontal overflow anywhere |
+| **UI — language** | VERIFIED | Russian throughout: templates, verdict copy, tier labels, monitoring, empty states. A test rejects English prose in any template |
+| **UI — cover art** | VERIFIED | Boxes are 16/9 because all 45 covers measured in production are landscape, median 1.78. Card crop went from 65% of the image to 6% |
 | **Accessibility** | IMPLEMENTED — NOT VERIFIED | Landmarks, labels, skip link, `aria-current` present. No axe audit (OQ-N3) |
 | **Security** | VERIFIED | 30 assertions, one per threat in ADR-019: SSRF, XSS, prompt injection, secret redaction, admin auth, rate limiting |
 | **Secrets** | VERIFIED | Index scanned before the first commit, 0 hits. `.env` ignored, `.env.example` ships every secret empty |

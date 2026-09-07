@@ -353,6 +353,19 @@ one is invisible on the machine the code was written on.
    with `game_id` passed as a column; three handlers read `payload["game_id"]`. Reviews,
    similarity and YouTube were all silently dead behind a crawl reporting 20/20 success.
 
+7. **The home page hero was covered by its own art.** `.cover-img` is absolutely
+   positioned and `.spotlight__cover` had no rule at all, so it resolved against the whole
+   section: headline, verdict, scores and both buttons underneath it, unreachable by a
+   mouse. Every check passed while that was true — the page was 200, laid out, and
+   unusable.
+8. **Every cover box was portrait and every cover is landscape.** Measured over 45 covers
+   in production; not one is taller than wide. The 3/4 boxes showed a third of each image
+   and cropped from the top, where the title is printed.
+9. **A prompt-version bump rewrote nothing.** The fingerprint marks a summary stale, but
+   the job that rewrites it is queued by `reviews.sync` — so a game nobody reviews again
+   keeps its old summary forever. Found by reading the database after the deploy: 111
+   model calls, zero of them regenerations.
+
 The sixth is the serious one. The service looked completely healthy — green crawl, green
 API, games arriving — and did almost nothing. Both sides of that seam had tests; the join
 between them had none.
