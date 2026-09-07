@@ -42,7 +42,21 @@ MAX_HEADING_CHARS = 90
 
 
 class ClaimOut(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    #: `claim_ru` is REQUIRED in the schema the model is given and OPTIONAL to parse.
+    #:
+    #: Those have to differ. Left merely optional, gpt-4o skipped it every time -- the
+    #: summaries regenerated, cost money, and came back in English, which is how a whole
+    #: catalogue was rewritten into the language it already had. Made required in Python
+    #: instead, one missing field would reject an otherwise valid summary and lose every
+    #: claim in it.
+    #:
+    #: So the tool contract insists and the parser forgives: the model is told the field
+    #: is mandatory, and a model that ignores that costs the reader a translation rather
+    #: than the finding.
+    model_config = ConfigDict(
+        extra="ignore",
+        json_schema_extra={"required": ["aspect", "claim", "claim_ru"]},
+    )
 
     aspect: Aspect
     #: English, in the reviews' own vocabulary. This is the field the validator checks:
@@ -53,7 +67,14 @@ class ClaimOut(BaseModel):
     #: The same claim in Russian, which is what a reader sees. Empty is allowed and falls
     #: back to `claim`: a missing translation should cost the reader a language, not the
     #: whole finding.
-    claim_ru: str = Field(default="", max_length=MAX_CLAIM_CHARS)
+    claim_ru: str = Field(
+        default="",
+        max_length=MAX_CLAIM_CHARS,
+        description=(
+            "The same claim in natural Russian. Mandatory. A faithful rendering of "
+            "`claim`, not a new thought: same aspect, same strength, nothing added."
+        ),
+    )
 
     _coerce_aspect = field_validator("aspect", mode="before")(_known_aspect)
     claim_type: ClaimType = ClaimType.DESCRIPTIVE

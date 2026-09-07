@@ -156,10 +156,10 @@ class Settings(BaseSettings):
     # one and rewrites on a mismatch (`recipe_changed`). It still needs something to
     # enqueue the work: `app.cli summarise --all`, or the next review sync. Editing a
     # prompt without bumping this leaves the old output on the page indefinitely.
-    prompt_version_critic: str = "critic-v2"
-    prompt_version_user: str = "user-v2"
-    prompt_version_letsplay: str = "letsplay-v2"
-    prompt_version_gap: str = "gap-v2"
+    prompt_version_critic: str = "critic-v3"
+    prompt_version_user: str = "user-v3"
+    prompt_version_letsplay: str = "letsplay-v3"
+    prompt_version_gap: str = "gap-v3"
     params_version: str = "p1"
     ai_max_input_tokens: int = 60_000
     ai_min_new_reviews: int = 10

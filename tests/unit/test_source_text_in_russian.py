@@ -50,6 +50,42 @@ class TestGenres:
             assert russian.strip(), source
 
 
+class TestTheModelIsToldRussianIsMandatory:
+    """Optional was not enough, and the failure was expensive and silent.
+
+    gpt-4o simply omitted `claim_ru` every time it was merely optional: summaries
+    regenerated, cost money, and came back in the language they were already in. Made
+    required in Python instead, one missing field would reject an otherwise valid summary
+    and lose every claim in it.
+
+    So the two differ on purpose. The tool contract insists; the parser forgives.
+    """
+
+    def test_the_tool_schema_demands_it(self):
+        from app.ai.schemas import SummaryOut
+
+        claim = SummaryOut.model_json_schema()["$defs"]["ClaimOut"]
+        assert "claim_ru" in claim["required"], claim.get("required")
+
+    def test_the_parser_still_accepts_a_model_that_ignores_that(self):
+        from app.ai.schemas import ClaimOut
+
+        parsed = ClaimOut(aspect="other", claim="Reviewers praise the soundtrack.")
+        assert parsed.claim_ru == ""
+
+    def test_a_missing_translation_falls_back_to_the_verified_english(self):
+        from app.api.schemas import ClaimOut as ClaimDTO
+
+        english = "Reviewers praise the soundtrack."
+        assert ClaimDTO(
+            aspect="audio", claim=english, claim_type="descriptive", evidence=["C01"]
+        ).text == english
+        assert ClaimDTO(
+            aspect="audio", claim=english, claim_ru="Рецензенты хвалят саундтрек.",
+            claim_type="descriptive", evidence=["C01"],
+        ).text == "Рецензенты хвалят саундтрек."
+
+
 class TestDescription:
     def test_the_translation_prompt_keeps_names_alone(self):
         """A reader searches for "Road to Glory", not for a translation of it."""
