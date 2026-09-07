@@ -270,10 +270,13 @@ class LetsPlayService:
         # backlog must not be able to spend the day's allowance on its own.
         over = ai_budget_exceeded(uow, self._settings)
         if over is not None:
+            reason, retry_after_s = over
             uow.events.emit(
-                "ai.budget_exhausted", level="warning", game_id=game_id, message=over
+                "ai.budget_exhausted", level="warning", game_id=game_id, message=reason
             )
-            return {"status": "deferred", "reason": "budget_exhausted"}
+            # Raised, not returned: "deferred" as a return value completed the job and
+            # spent its key, which is a deferral in name only.
+            raise BudgetExhausted(reason, retry_after_s=retry_after_s)
 
         text = sanitize_for_prompt(transcript.text or "", max_chars=TRANSCRIPT_PROMPT_CHARS)
         prompt = prompts.build_letsplay_prompt(

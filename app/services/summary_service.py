@@ -26,7 +26,7 @@ from app.ai.validator import (
 )
 from app.config import Settings
 from app.domain.enums import Audience, ClaimSide, ReviewKind, SummaryStatus
-from app.domain.errors import RetryableError
+from app.domain.errors import BudgetExhausted, RetryableError
 from app.domain.scores import critic_score, user_score
 from app.logging import correlate, get_logger
 from app.normalizers.text import sha256_text
@@ -80,8 +80,13 @@ AUDIENCE_KIND = {Audience.CRITIC: ReviewKind.CRITIC, Audience.USER: ReviewKind.U
 
 def ai_budget_exceeded(
     uow: UnitOfWork, settings: Settings, *, now: dt.datetime | None = None
-) -> str | None:
-    """The reason AI spending must stop right now, or ``None``.
+) -> tuple[str, int] | None:
+    """The reason AI spending must stop right now and how long to wait, or ``None``.
+
+    The delay matters as much as the reason. Without it a caller can only choose between
+    failing and pretending to succeed, and this one chose to pretend: it returned a
+    successful outcome having done nothing, which spent the job's idempotency key and
+    quietly dropped the work.
 
     Two independent ceilings, because they fail differently: the daily cost cap bounds the
     bill, and the hourly call cap bounds a runaway loop that would otherwise reach the
@@ -98,14 +103,31 @@ def ai_budget_exceeded(
     limit = settings.ai_daily_cost_limit_usd
     if limit > 0 and day["cost_usd"] >= limit:
         return (
-            f"Расходы на ИИ за 24 часа: ${day['cost_usd']:.2f} из ${limit:.2f}"
+            f"Расходы на ИИ за 24 часа: ${day['cost_usd']:.2f} из ${limit:.2f}",
+            _seconds_until_tomorrow(now),
         )
 
     hour = uow.summaries.cost_since(now - dt.timedelta(hours=1))
     max_calls = settings.ai_max_calls_per_hour
     if max_calls > 0 and hour["calls"] >= max_calls:
-        return f"Обращений к модели за час: {hour['calls']}, лимит {max_calls}"
+        return (
+            f"Обращений к модели за час: {hour['calls']}, лимит {max_calls}",
+            _seconds_until_next_hour(now),
+        )
     return None
+
+
+def _seconds_until_next_hour(now: dt.datetime) -> int:
+    """Both ceilings are rolling windows, so "when it resets" is when the oldest call
+    ages out. The top of the hour is a close enough floor and always positive."""
+    return max(60, 3600 - (now.minute * 60 + now.second))
+
+
+def _seconds_until_tomorrow(now: dt.datetime) -> int:
+    midnight = (now + dt.timedelta(days=1)).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
+    return max(300, int((midnight - now).total_seconds()))
 
 
 class SummaryService:
@@ -262,7 +284,9 @@ class SummaryService:
 
     # ------------------------------------------------------------------ generation
 
-    def over_budget(self, uow: UnitOfWork, *, now: dt.datetime | None = None) -> str | None:
+    def over_budget(
+        self, uow: UnitOfWork, *, now: dt.datetime | None = None
+    ) -> tuple[str, int] | None:
         return ai_budget_exceeded(uow, self._settings, now=now)
 
     def generate(
@@ -301,27 +325,22 @@ class SummaryService:
 
             over = self.over_budget(uow)
             if over is not None:
-                # Deferred, not failed, and NOT recorded as a summary: the game keeps the
-                # summary it already has. A cost ceiling that only appears on a dashboard
-                # is not a ceiling.
+                reason, retry_after_s = over
+                # RAISE, do not return. `BudgetExhausted` exists for exactly this, and the
+                # worker already treats it as a deferral rather than a failure -- the job
+                # keeps its place in the queue and comes back when the ceiling resets.
                 #
-                # This returns rather than raising, so the JOB completes -- successfully,
-                # having done nothing. Whatever enqueued it must therefore be able to
-                # enqueue it again: `reviews.sync` keys by date and does, and so does
-                # `app.cli summarise --all`. A caller that keys by anything permanent
-                # spends its key here and never gets another turn, which is how half a
-                # catalogue kept its old summaries after a prompt change.
+                # Returning a successful outcome instead meant the job completed having
+                # done nothing, which spent its idempotency key and dropped the work
+                # silently. A whole catalogue kept its old summaries that way, twice,
+                # while every job in the queue reported success.
                 uow.events.emit(
                     "ai.budget_exhausted",
                     level="warning",
                     game_id=game_id,
-                    message=over,
+                    message=reason,
                 )
-                return SummaryOutcome(
-                    audience=audience,
-                    status=SummaryStatus.SKIPPED_NO_DATA,
-                    reason=SkipReason.BUDGET_EXHAUSTED.value,
-                )
+                raise BudgetExhausted(reason, retry_after_s=retry_after_s)
 
             snapshot = decision.snapshot
             assert snapshot is not None
@@ -595,7 +614,7 @@ class SummaryService:
             return None
         if not self._llm.enabled:
             return None
-        if self.over_budget(uow) is not None:
+        if self.over_budget(uow) is not None:  # (reason, retry_after) or None
             # The gap explanation is the least essential of the three AI outputs: the
             # verdict sentence and the warning note are both derived, so the page still
             # says clearly that the two audiences disagree.

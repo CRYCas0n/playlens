@@ -13,6 +13,7 @@ import pytest
 import sqlalchemy as sa
 
 from app.db.models import Game, GamePlatform, Platform, Summary
+from app.domain.errors import BudgetExhausted
 from app.normalizers.text import normalize_title
 from app.services.summary_service import ai_budget_exceeded
 
@@ -66,9 +67,13 @@ def test_under_the_limit_nothing_is_refused(db, uow, db_settings, lead):
 def test_the_daily_cost_ceiling_stops_generation(db, uow, db_settings, lead, monkeypatch):
     monkeypatch.setattr(db_settings, "ai_daily_cost_limit_usd", 10.0)
     spend(db, lead, usd=10.01)
-    reason = ai_budget_exceeded(uow, db_settings)
-    assert reason is not None
+    result = ai_budget_exceeded(uow, db_settings)
+    assert result is not None
+    reason, retry_after_s = result
     assert "$10.01 из $10.00" in reason
+    # The delay is the half that makes deferral possible: without it a caller can only
+    # fail or pretend to succeed, and this one used to pretend.
+    assert 300 <= retry_after_s <= 86_400
 
 
 def test_the_hourly_call_ceiling_stops_a_runaway_loop(
@@ -77,9 +82,11 @@ def test_the_hourly_call_ceiling_stops_a_runaway_loop(
     """A loop can reach a daily cost cap in minutes; the call cap is the faster brake."""
     monkeypatch.setattr(db_settings, "ai_max_calls_per_hour", 5)
     spend(db, lead, usd=0.01, calls=6, ago_hours=0.1)
-    reason = ai_budget_exceeded(uow, db_settings)
-    assert reason is not None
+    result = ai_budget_exceeded(uow, db_settings)
+    assert result is not None
+    reason, retry_after_s = result
     assert "Обращений к модели за час: 6" in reason
+    assert 60 <= retry_after_s <= 3600, "an hourly window resets within the hour"
 
 
 def test_yesterdays_spend_does_not_count_against_today(
@@ -150,11 +157,16 @@ class TestTheGuardIsActuallyWired:
         spend(db, lead, usd=5.0)
 
         llm = FixtureLLMProvider()
-        outcome = SummaryService(llm, settings).generate(
-            uow, game_id=game_id, game_platform_id=gp_id, audience=Audience.CRITIC
-        )
+        # Raised, not returned. A returned outcome completes the job and spends its
+        # idempotency key -- a deferral in name only, and how a whole catalogue kept its
+        # old summaries while every job reported success. BudgetExhausted is what the
+        # worker already understands as "come back later".
+        with pytest.raises(BudgetExhausted) as caught:
+            SummaryService(llm, settings).generate(
+                uow, game_id=game_id, game_platform_id=gp_id, audience=Audience.CRITIC
+            )
 
-        assert outcome.reason == "budget_exhausted"
+        assert caught.value.retry_after_s > 0, "a deferral needs a time to come back at"
         assert llm.calls == 0, "the ceiling has to stop the call, not report it afterwards"
 
     def test_the_refusal_is_visible_to_an_operator(self, db, uow, load_harvest):
@@ -173,9 +185,10 @@ class TestTheGuardIsActuallyWired:
         )
         spend(db, uow.games.get_platform(gp_id), usd=5.0)
 
-        SummaryService(FixtureLLMProvider(), settings).generate(
-            uow, game_id=game_id, game_platform_id=gp_id, audience=Audience.CRITIC
-        )
+        with pytest.raises(BudgetExhausted):
+            SummaryService(FixtureLLMProvider(), settings).generate(
+                uow, game_id=game_id, game_platform_id=gp_id, audience=Audience.CRITIC
+            )
         db.flush()
 
         assert "ai.budget_exhausted" in [e.event for e in uow.events.recent(limit=20)]
