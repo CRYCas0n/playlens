@@ -68,7 +68,7 @@ def test_the_daily_cost_ceiling_stops_generation(db, uow, db_settings, lead, mon
     spend(db, lead, usd=10.01)
     reason = ai_budget_exceeded(uow, db_settings)
     assert reason is not None
-    assert "$10.01 of $10.00" in reason
+    assert "$10.01 из $10.00" in reason
 
 
 def test_the_hourly_call_ceiling_stops_a_runaway_loop(
@@ -79,7 +79,7 @@ def test_the_hourly_call_ceiling_stops_a_runaway_loop(
     spend(db, lead, usd=0.01, calls=6, ago_hours=0.1)
     reason = ai_budget_exceeded(uow, db_settings)
     assert reason is not None
-    assert "6 model calls in the last hour" in reason
+    assert "Обращений к модели за час: 6" in reason
 
 
 def test_yesterdays_spend_does_not_count_against_today(

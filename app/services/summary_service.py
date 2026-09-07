@@ -97,12 +97,14 @@ def ai_budget_exceeded(
     day = uow.summaries.cost_since(now - dt.timedelta(days=1))
     limit = settings.ai_daily_cost_limit_usd
     if limit > 0 and day["cost_usd"] >= limit:
-        return f"AI spend in the last 24h is ${day['cost_usd']:.2f} of ${limit:.2f}"
+        return (
+            f"Расходы на ИИ за 24 часа: ${day['cost_usd']:.2f} из ${limit:.2f}"
+        )
 
     hour = uow.summaries.cost_since(now - dt.timedelta(hours=1))
     max_calls = settings.ai_max_calls_per_hour
     if max_calls > 0 and hour["calls"] >= max_calls:
-        return f"{hour['calls']} model calls in the last hour, limit {max_calls}"
+        return f"Обращений к модели за час: {hour['calls']}, лимит {max_calls}"
     return None
 
 
