@@ -36,9 +36,20 @@ def _known_aspect(value: Any) -> Any:
     return value
 
 MAX_CLAIMS_PER_SIDE = 5
-MAX_CLAIM_CHARS = 240
-MAX_OVERALL_CHARS = 700
-MAX_HEADING_CHARS = 90
+# Character budgets, in Russian.
+#
+# These were set against English and then the output language changed, which makes them
+# roughly a fifth too small: the same information in Russian runs 15-20% longer, because
+# the words are longer and the language does not contract the way English does. A model
+# writing a correct, concise paragraph had it rejected for being 704 characters, and the
+# whole summary went with it -- a length limit is not a quality control, and it should
+# never be the thing that loses a good answer.
+#
+# The numbers are the English ones plus a fifth, rounded. They still bound the paragraph
+# to something a reader will actually read, which is the point of having them.
+MAX_CLAIM_CHARS = 290
+MAX_OVERALL_CHARS = 850
+MAX_HEADING_CHARS = 110
 
 
 class ClaimOut(BaseModel):

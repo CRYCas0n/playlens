@@ -17,6 +17,7 @@ version, which changes the input fingerprint, which is a legitimate reason to re
 from __future__ import annotations
 
 from app.adapters.llm.base import RenderedPrompt
+from app.ai.schemas import MAX_CLAIM_CHARS, MAX_HEADING_CHARS, MAX_OVERALL_CHARS
 from app.domain.enums import Aspect, Audience
 
 ASPECT_LIST = ", ".join(a.value for a in Aspect)
@@ -50,6 +51,12 @@ checked against them mechanically, word by word. So write each claim TWICE:
   new thought -- same aspect, same strength, no detail that is not in the English.
   Translate the substance, not the words: no calques, no English word order.
 Write the `overall` paragraph and the `heading` in Russian only.
+
+Length, in characters, and these are hard limits rather than suggestions -- an answer
+over them is discarded whole, however good it is:
+- `heading`: at most {MAX_HEADING_CHARS}
+- `overall`: at most {MAX_OVERALL_CHARS}
+- each `claim` and each `claim_ru`: at most {MAX_CLAIM_CHARS}
 """
 
 _CORPUS_FRAME = """\

@@ -86,6 +86,32 @@ class TestTheModelIsToldRussianIsMandatory:
         ).text == "Рецензенты хвалят саундтрек."
 
 
+class TestTheBudgetsFitTheLanguage:
+    """A length limit should never be the thing that loses a good answer.
+
+    The budgets were set against English and the output language then changed. Russian
+    runs 15-20% longer for the same information, so a model writing a correct, concise
+    paragraph had it rejected at 704 characters against a 700 limit -- and the whole
+    summary went with it, claims included.
+    """
+
+    def test_the_prompt_tells_the_model_the_budget(self):
+        """A model cannot respect a limit it is never given."""
+        from app.ai.prompts import _RULES
+        from app.ai.schemas import MAX_CLAIM_CHARS, MAX_HEADING_CHARS, MAX_OVERALL_CHARS
+
+        for limit in (MAX_CLAIM_CHARS, MAX_HEADING_CHARS, MAX_OVERALL_CHARS):
+            assert str(limit) in _RULES, limit
+
+    def test_the_budgets_allow_for_russian_running_longer(self):
+        from app.ai.schemas import MAX_CLAIM_CHARS, MAX_HEADING_CHARS, MAX_OVERALL_CHARS
+
+        # The English-era values, kept here as the thing being compared against.
+        for english, now in ((240, MAX_CLAIM_CHARS), (700, MAX_OVERALL_CHARS), (90, MAX_HEADING_CHARS)):
+            assert now >= english * 1.15, f"{now} leaves no room over the English {english}"
+            assert now <= english * 1.4, f"{now} is no longer a limit worth having"
+
+
 class TestDescription:
     def test_the_translation_prompt_keeps_names_alone(self):
         """A reader searches for "Road to Glory", not for a translation of it."""
