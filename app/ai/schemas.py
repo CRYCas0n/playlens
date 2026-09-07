@@ -51,6 +51,31 @@ MAX_CLAIM_CHARS = 290
 MAX_OVERALL_CHARS = 850
 MAX_HEADING_CHARS = 110
 
+#: The point at which a paragraph stops being a paragraph. Not the display budget: this
+#: is an abuse guard, and the two are different jobs.
+#:
+#: They were the same number, and a summary was thrown away twice for being 4 and 54
+#: characters over -- the model writing well, the answer discarded whole, the claims with
+#: it. A display constraint must not be able to reject an answer. Over the display budget
+#: the paragraph is trimmed at a sentence boundary; over this, something is wrong with the
+#: model and rejecting is right.
+OVERALL_HARD_CAP = 2500
+
+
+def _trim_to_sentence(text: str, budget: int) -> str:
+    """Cut to the last sentence that ends within `budget`.
+
+    Never mid-word and never mid-sentence: a paragraph that stops in the middle reads
+    like a bug, which is exactly what it would be. If no sentence ends in the budget --
+    one enormous sentence -- the text is left alone and the hard cap is the only guard.
+    """
+    text = text.strip()
+    if len(text) <= budget:
+        return text
+    window = text[: budget + 1]
+    end = max(window.rfind(mark) for mark in (". ", "! ", "? ", ".", "!", "?"))
+    return window[: end + 1].strip() if end > budget // 2 else text
+
 
 class ClaimOut(BaseModel):
     #: `claim_ru` is REQUIRED in the schema the model is given and OPTIONAL to parse.
@@ -111,7 +136,12 @@ class SummaryOut(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     heading: str = Field(default="", max_length=MAX_HEADING_CHARS)
-    overall: str = Field(default="", max_length=MAX_OVERALL_CHARS)
+    overall: str = Field(default="", max_length=OVERALL_HARD_CAP)
+
+    @field_validator("overall", mode="after")
+    @classmethod
+    def _fit_the_display_budget(cls, value: str) -> str:
+        return _trim_to_sentence(value, MAX_OVERALL_CHARS)
     #: 0..5. An empty list is a legitimate, informative answer.
     positive: list[ClaimOut] = Field(default_factory=list, max_length=MAX_CLAIMS_PER_SIDE)
     negative: list[ClaimOut] = Field(default_factory=list, max_length=MAX_CLAIMS_PER_SIDE)
@@ -160,7 +190,12 @@ class LetsPlayOut(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     heading: str = Field(default="", max_length=MAX_HEADING_CHARS)
-    overall: str = Field(default="", max_length=MAX_OVERALL_CHARS)
+    overall: str = Field(default="", max_length=OVERALL_HARD_CAP)
+
+    @field_validator("overall", mode="after")
+    @classmethod
+    def _fit_the_display_budget(cls, value: str) -> str:
+        return _trim_to_sentence(value, MAX_OVERALL_CHARS)
     points: list[LetsPlayPointOut] = Field(default_factory=list, max_length=5)
     confidence: float = Field(default=0.5, ge=0.0, le=1.0)
 

@@ -103,6 +103,34 @@ class TestTheBudgetsFitTheLanguage:
         for limit in (MAX_CLAIM_CHARS, MAX_HEADING_CHARS, MAX_OVERALL_CHARS):
             assert str(limit) in _RULES, limit
 
+    def test_a_long_paragraph_is_trimmed_rather_than_rejected(self):
+        """Twice a good summary was thrown away for being a few characters over, claims
+        and all. A display constraint must not be able to reject an answer."""
+        from app.ai.schemas import MAX_OVERALL_CHARS, SummaryOut
+
+        long = "Игра предлагает много интересного. " * 40
+        parsed = SummaryOut(overall=long)
+        assert len(parsed.overall) <= MAX_OVERALL_CHARS
+        assert parsed.overall.endswith("."), "trimmed mid-sentence reads like a bug"
+
+    def test_something_absurd_is_still_rejected(self):
+        """The hard cap is a different job from the display budget: past it, the model is
+        misbehaving rather than verbose."""
+        import pytest as _pytest
+        from pydantic import ValidationError
+
+        from app.ai.schemas import OVERALL_HARD_CAP, SummaryOut
+
+        with _pytest.raises(ValidationError):
+            SummaryOut(overall="а" * (OVERALL_HARD_CAP + 1))
+
+    def test_one_enormous_sentence_is_left_alone(self):
+        """Better a long paragraph than one cut off in the middle of a clause."""
+        from app.ai.schemas import SummaryOut
+
+        single = "а" * 1200
+        assert SummaryOut(overall=single).overall == single
+
     def test_the_budgets_allow_for_russian_running_longer(self):
         from app.ai.schemas import MAX_CLAIM_CHARS, MAX_HEADING_CHARS, MAX_OVERALL_CHARS
 
