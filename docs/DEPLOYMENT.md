@@ -1,5 +1,9 @@
 # Deployment
 
+> **Looking for a free host?** See [`DEPLOYMENT_OPTIONS.md`](DEPLOYMENT_OPTIONS.md).
+> Render's free tier does not include a worker, so a full Render deployment costs about
+> $22/month. Hugging Face Spaces plus Neon is free and needs no card.
+
 The service needs six things from a host: managed PostgreSQL, one web process, one
 long-running worker, one hourly schedule, environment secrets and HTTPS on a public name.
 That list is short and unremarkable, and it is what the options below are judged against.
@@ -14,6 +18,7 @@ and has never run. Treat the first deploy as a test of these files.
 
 | | Render | Fly.io | Railway | A VPS |
 |---|---|---|---|---|
+| **Free enough to run this** | ❌ worker is paid | ❌ | ❌ after credit | depends on the VPS |
 | Managed PostgreSQL | ✅ free tier, 30 days | ✅ paid | ✅ | you run it |
 | Worker process | ✅ paid plan | ✅ | ✅ | ✅ |
 | Scheduled job | ✅ cron service | ✅ machines | ✅ | cron |
@@ -23,22 +28,26 @@ and has never run. Treat the first deploy as a test of these files.
 | Card required to start | no | yes | yes | yes |
 | Time to first URL | ~10 min | ~20 min | ~15 min | ~1 hour |
 
-**Render is the recommendation, and `render.yaml` in the repository root is written for
-it.** Not because it is the best platform — because it is the only one where the whole
-stack is described by a file already in the repository, and the first URL costs nothing
-and no card.
+**Render is the recommendation only if you are paying.** `render.yaml` in the repository
+root is written for it and describes the whole stack in one file, which is genuinely the
+smoothest paid path — three services and a database from one click.
 
-Its real drawbacks, said plainly:
+It is **not** the free path, and I recommended it as one by mistake. Its free tier covers
+a web service and a database; there is no free worker plan, and this service needs a
+worker. A real Render deployment is about $22/month.
 
-* The free PostgreSQL plan **expires after 30 days**. For anything past a demo, change
-  `plan: free` to `plan: starter` on the database.
-* The free web plan **sleeps after 15 minutes** of no traffic and takes ~30 seconds to
-  wake. Fine for showing someone; wrong for a service people use.
-* There is no free worker plan. The worker and the cron job need `starter`.
+Its other limits, while we are being exact:
 
-A VPS is the honest alternative if you already have one: `docker compose up -d` with the
-production overlay does the whole thing, and `docs/HUMAN_DEPLOYMENT_HANDOFF.md` has that
-path.
+* The free PostgreSQL plan **expires after 30 days**.
+* The free web plan **sleeps after 15 minutes** of no traffic, waking in ~30 seconds.
+
+**For free, see [`DEPLOYMENT_OPTIONS.md`](DEPLOYMENT_OPTIONS.md):** Hugging Face Spaces
+for the app and Neon for the database, neither of which asks for a card. That path runs
+all three roles in one container (`app/allinone.py`), which is a compromise the document
+names and quantifies.
+
+A VPS is the other honest option if you already have one: `docker compose up -d` with the
+production overlay does the whole thing.
 
 ---
 
@@ -143,3 +152,4 @@ are deliberately open, and their error text passes through the same redactor as 
 | The stack runs under compose | **NOT VERIFIED** — same reason |
 | Render applies the blueprint | **NOT VERIFIED** — no account exists |
 | The application runs on PostgreSQL 16 | **VERIFIED** — 362 integration tests against a real server, plus the app served in production mode |
+| One container runs web + worker + scheduler together | **VERIFIED** — `app/allinone.py` against PostgreSQL 16.4: migrated, both threads up, crawled Metacritic, synced 12 real games |

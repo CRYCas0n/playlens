@@ -203,3 +203,70 @@ class TestTheRenderBlueprint:
         script = (ROOT / "docker" / "entrypoint.sh").read_text(encoding="utf-8")
         assert "${PORT:-8000}" in script
         assert "--port 8000" not in script
+
+
+class TestTheSingleContainerImage:
+    """The root `Dockerfile` runs everything in one container, for free hosts.
+
+    Every genuinely free platform gives you exactly one container, and this service needs
+    three roles running. The image is a compromise with a stated cost — one failure domain
+    instead of three — and these tests check that the compromise is at least built right.
+    """
+
+    @pytest.fixture(scope="class")
+    def dockerfile(self) -> str:
+        path = ROOT / "Dockerfile"
+        assert path.exists(), "free-tier hosts look for a Dockerfile at the repo root"
+        return path.read_text(encoding="utf-8")
+
+    def test_it_runs_the_all_in_one_entry_point(self, dockerfile: str):
+        assert "app.allinone" in dockerfile
+
+    def test_it_runs_as_uid_1000(self, dockerfile: str):
+        """Hugging Face Spaces refuses to run a container as root and expects uid 1000."""
+        assert "useradd -m -u 1000" in dockerfile
+        assert "USER playlens" in dockerfile
+        assert dockerfile.index("USER playlens") < dockerfile.index("CMD ")
+
+    def test_the_port_is_overridable(self, dockerfile: str):
+        """7860 is what Spaces routes to; anywhere setting $PORT must win."""
+        assert "ENV PORT=7860" in dockerfile
+        assert "${PORT}" in dockerfile
+
+    def test_dependencies_are_installed_before_the_code(self, dockerfile: str):
+        assert dockerfile.index("COPY --chown=playlens:playlens pyproject.toml") < dockerfile.index(
+            "COPY --chown=playlens:playlens app "
+        )
+
+    def test_it_installs_the_drivers_the_free_stack_needs(self, dockerfile: str):
+        """psycopg for Neon, Pillow so the image proxy actually resizes rather than
+        passing 2.3 MB originals through."""
+        assert "psycopg[binary]" in dockerfile
+        assert "Pillow" in dockerfile
+
+    def test_the_healthcheck_points_at_the_health_endpoint(self, dockerfile: str):
+        assert "HEALTHCHECK" in dockerfile
+        assert "/api/v1/health" in dockerfile
+
+    def test_it_does_not_replace_the_multi_container_image(self):
+        """The three-role image stays the real one; this is the fallback."""
+        assert (ROOT / "docker" / "backend.Dockerfile").exists()
+
+
+class TestTheAllInOneModule:
+    def test_it_reads_the_platform_port(self):
+        source = (ROOT / "app" / "allinone.py").read_text(encoding="utf-8")
+        assert 'os.environ.get("PORT")' in source
+        assert "SPACE_PORT" in source
+
+    def test_a_crashed_thread_is_logged_and_restarted(self):
+        """A background thread that dies silently kills the capability while leaving the
+        process looking healthy: the site serves and nothing is ever crawled again."""
+        source = (ROOT / "app" / "allinone.py").read_text(encoding="utf-8")
+        assert "allinone.thread_crashed" in source
+        assert "RESTART_DELAY_S" in source
+
+    def test_the_compromise_is_documented_in_the_module_itself(self):
+        source = (ROOT / "app" / "allinone.py").read_text(encoding="utf-8")
+        assert "compromise" in source.lower()
+        assert "docker-compose.prod.yml" in source

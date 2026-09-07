@@ -26,25 +26,31 @@ will push the workflow and confirm it runs green.
 Five jobs: lint, unit tests, integration tests against a real PostgreSQL 16, a migration
 round trip, and a security job.
 
-### 2. A Render account, for the public URL *(10 minutes, free, no card)*
+### 2. Two free accounts, for the public URL *(8 minutes, no card)*
 
 This is the only thing standing between the project and a link you can open.
 
-1. <https://render.com> → **Get Started** → sign in with GitHub.
-2. Authorise Render to read the `playlens` repository.
-3. **New → Blueprint** → choose `playlens`.
-4. It reads `render.yaml` and shows four things: a database, a web service, a worker, a
-   cron job.
-5. It asks for exactly two values — paste them into Render's own form:
-   - `LLM_API_KEY` (your OpenAI key)
-   - `YOUTUBE_API_KEY`
-6. **Apply.** First build takes 5–10 minutes.
+Render was the wrong recommendation and you were right to push back: its free tier has no
+worker, so a real deployment there is about $22/month. The free path is two accounts,
+neither of which asks for payment details:
 
-**Do not send me the keys.** Render stores them; I never need to see them.
+- **<https://neon.tech>** — PostgreSQL. Sign in with GitHub, create a project, copy the
+  connection string.
+- **<https://huggingface.co>** — the app. New Space → **SDK: Docker** → Public → CPU basic.
 
-The free tier gets you a working public URL. Its limits, stated up front: the web service
-sleeps after 15 minutes idle and takes ~30 seconds to wake, and the free database expires
-after 30 days. Both are one dropdown to change later.
+The exact steps, including the one edit the Neon string needs, are in
+[`DEPLOYMENT_OPTIONS.md`](DEPLOYMENT_OPTIONS.md). It takes two commands at the end:
+
+```powershell
+git remote add space https://huggingface.co/spaces/<your-username>/playlens
+git push space main
+```
+
+**Do not send me the keys.** They go into the Space's own secrets form.
+
+The whole stack runs in one container there — web, worker and scheduler together. That
+mode is verified: on this machine it migrated, started both threads, crawled Metacritic
+and synced 12 real games in 25 seconds.
 
 ### 3. One decision, before anyone else sees it
 
