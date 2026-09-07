@@ -50,13 +50,11 @@ services:
 
   api:
     restart: unless-stopped
-    # Loopback, not 0.0.0.0. The base file publishes 8000 on every interface, which is
-    # right for a laptop and wrong for a public host: it puts the application on
-    # http://<ip>:8000 beside the HTTPS name, bypassing the reverse proxy, its
-    # certificate and its rate limits. Behind a proxy the app needs to be reachable
-    # from the host and from nowhere else.
-    ports:
-      - "${API_BIND_HOST:-127.0.0.1}:${API_BIND_PORT:-8000}:8000"
+    # No `ports` here on purpose. Compose CONCATENATES this list across files rather
+    # than replacing it, so an entry here would be added to the base file's, not
+    # substituted for it -- two bindings for one port, the second failing to bind or,
+    # worse, succeeding on 0.0.0.0. The bind address lives in the base file and is
+    # changed with $API_BIND_HOST.
     environment:
       APP_ENV: production
       LOG_FORMAT: json

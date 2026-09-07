@@ -194,14 +194,26 @@ class TestTheyAgreeWithTheRepository:
         assert "api:8000" in body("caddy-site.sh")
         assert "EXPOSE 8000" in (ROOT / "docker" / "backend.Dockerfile").read_text(encoding="utf-8")
 
-    def test_the_production_overlay_keeps_the_app_off_the_public_interface(self):
+    def test_the_app_is_bound_to_loopback_by_default(self):
         """Behind a proxy the app must be reachable from the host and nowhere else.
         Published on 0.0.0.0 it also answers on http://<ip>:8000 -- the same site without
         the certificate, without the proxy, and without its rate limits."""
         yaml = pytest.importorskip("yaml")
-        prod = yaml.safe_load((ROOT / "docker-compose.prod.yml").read_text(encoding="utf-8"))
-        ports = prod["services"]["api"]["ports"]
+        base = yaml.safe_load((ROOT / "docker-compose.yml").read_text(encoding="utf-8"))
+        ports = base["services"]["api"]["ports"]
         assert ports == ["${API_BIND_HOST:-127.0.0.1}:${API_BIND_PORT:-8000}:8000"], ports
+
+    def test_no_overlay_adds_a_second_binding_for_the_same_port(self):
+        """`docker compose config` on the server proved this the hard way: compose
+        CONCATENATES `ports` across files instead of replacing them, so an entry in the
+        overlay is added to the base file's rather than substituted for it. The result
+        was two bindings for port 8000, one of them on 0.0.0.0 -- exactly the exposure
+        the loopback bind exists to prevent."""
+        yaml = pytest.importorskip("yaml")
+        for name in ("docker-compose.prod.yml", "docker-compose.dev.yml"):
+            overlay = yaml.safe_load((ROOT / name).read_text(encoding="utf-8"))
+            api = overlay.get("services", {}).get("api", {})
+            assert "ports" not in api, f"{name} adds a second binding for the api"
 
     def test_the_healthcheck_probes_the_port_the_entrypoint_binds(self):
         """These disagreed: a $PORT the entrypoint honoured, a literal 8000 the
