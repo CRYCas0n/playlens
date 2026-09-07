@@ -167,15 +167,14 @@ def _summarise_one(container, uow, game) -> dict[str, str]:
 def cmd_summarise(args: argparse.Namespace) -> int:
     """Generate summaries now, without waiting for the queue.
 
+    `--slug` generates inline, for one game, with an operator watching. `--all` queues
+    the work instead -- see the comment where it does, which is about a race it lost.
+
     `--all` exists because of a gap the prompt-version bump exposed. A summary's
     fingerprint includes the prompt version, so changing the prompt makes every existing
     summary stale -- but nothing *enqueues* the rewrite. `summary.generate` is queued by
     `reviews.sync`, which only runs when the reviews themselves change. A game nobody
     reviews again would have kept its old summary indefinitely.
-
-    Generation is skipped where the fingerprint still matches, so a rerun costs nothing
-    for summaries that are already current, and the daily cost ceiling stops the pass
-    rather than the pass ignoring it.
     """
     if (code := _require_schema()) is not None:
         return code
@@ -201,29 +200,53 @@ def cmd_summarise(args: argparse.Namespace) -> int:
         _emit({"game": args.slug, **results}, as_json=args.json)
         return EXIT_OK
 
-    # One transaction per game: a cost-limit stop mid-pass must keep what it has done.
+    # --all ENQUEUES; it does not generate. Generating here raced the worker, which was
+    # regenerating the same summaries at the same time: both computed the same
+    # fingerprint, both wrote, and the second hit uq_summary_fingerprint. 29 games out of
+    # 40 failed that way.
+    #
+    # The queue already solves this. One worker takes one job at a time, the enqueue is
+    # idempotent by key, and the daily cost ceiling applies where it always has. The key
+    # carries the prompt version, so a refresh happens once per prompt change rather than
+    # once per invocation -- running this twice is free.
+    from app.domain.enums import Audience
+
+    queued = 0
     with container.uow() as uow:
-        slugs = sorted(uow.games.known_slugs())[: args.limit]
+        version = container.settings.params_version
+        for slug in sorted(uow.games.known_slugs())[: args.limit]:
+            game = uow.games.get_by_slug(slug)
+            if game is None:
+                continue
+            lead = next((gp for gp in game.platforms if gp.is_lead), None)
+            if lead is None:
+                continue
+            for audience in (Audience.CRITIC, Audience.USER):
+                prompt_version = (
+                    container.settings.prompt_version_critic
+                    if audience is Audience.CRITIC
+                    else container.settings.prompt_version_user
+                )
+                if uow.jobs.enqueue(
+                    job_type="summary.generate",
+                    idempotency_key=f"summary:{lead.id}:{audience.value}:{prompt_version}:{version}",
+                    queue="ai",
+                    game_id=game.id,
+                    payload={
+                        "game_id": game.id,
+                        "game_platform_id": lead.id,
+                        "audience": audience.value,
+                    },
+                    priority=3,
+                ).created:
+                    queued += 1
 
-    counts: dict[str, int] = {}
-    for position, slug in enumerate(slugs, start=1):
-        try:
-            with container.uow() as uow:
-                game = uow.games.get_by_slug(slug)
-                if game is None:
-                    continue
-                results = _summarise_one(container, uow, game)
-        except Exception as exc:  # one bad game must not end a catalogue-wide pass
-            counts["error"] = counts.get("error", 0) + 1
-            print(f"[{position}/{len(slugs)}] {slug}: {type(exc).__name__}", file=sys.stderr)
-            continue
-        for value in results.values():
-            key = value.split(" ")[0]
-            counts[key] = counts.get(key, 0) + 1
-        if not args.json:
-            print(f"[{position}/{len(slugs)}] {slug}: {results}")
-
-    _emit({"games": len(slugs), **counts}, as_json=args.json)
+    _emit({"queued": queued}, as_json=args.json)
+    if queued:
+        print(
+            f"\n  {queued} summaries queued for rewriting. The worker takes them one at "
+            "a time,\n  and stops for the day when AI_DAILY_COST_LIMIT_USD is reached."
+        )
     return EXIT_OK
 
 
