@@ -12,7 +12,7 @@
       fallback is already there (design/COMPONENTS.md -> CoverFallback). -#}
   <div class="cover-fallback">
     <span class="cover-fallback__mark">{{ title | initials }}</span>
-    <span class="cover-fallback__note">Cover unavailable</span>
+    <span class="cover-fallback__note">Обложки нет</span>
   </div>
   {%- if url %}
   <img class="cover-img" src="{{ url | img(width) }}" alt="" loading="lazy" onerror="this.remove()">
@@ -27,7 +27,7 @@
     {%- if score.status == 'valid' -%}
       {{ score | score_text }}
     {%- else -%}
-      <span aria-label="Not rated">—</span>
+      <span aria-label="Без оценки">—</span>
     {%- endif -%}
   </span>
 {% endmacro %}
@@ -48,7 +48,7 @@
   <div class="gauge score {{ score | tier_class }}{% if small %} gauge--sm{% endif %}{% if score.status != 'valid' %} gauge--none{% endif %}"
        style="--pct:{{ score.normalized or 0 }}"
        role="img"
-       aria-label="{% if score.status == 'valid' %}{{ score | score_text }}{% else %}Not rated{% endif %}, {{ score.tier_label }}">
+       aria-label="{% if score.status == 'valid' %}{{ score | score_text }}{% else %}Без оценки{% endif %}, {{ score.tier_label }}">
     <div class="gauge__ring"></div>
     <div class="gauge__body">
       <span class="gauge__value">{% if score.status == 'valid' %}{{ score | score_text }}{% else %}—{% endif %}</span>
@@ -82,7 +82,7 @@
 {% macro game_card(game, flag=None) %}
   {#- One anchor wrapping everything, with a composed label. -#}
   <a class="game-card" href="/games/{{ game.slug }}"
-     aria-label="{{ game.title }} — Metascore {% if game.metascore.status == 'valid' %}{{ game.metascore.value | int }}, {{ game.metascore.tier_label }}{% else %}not rated{% endif %}">
+     aria-label="{{ game.title }} — метаоценка {% if game.metascore.status == 'valid' %}{{ game.metascore.value | int }}, {{ game.metascore.tier_label }}{% else %}без оценки{% endif %}">
     <div class="game-card__cover">
       {{ cover(game.title, game.cover_url, 320) }}
       {{ score_badge(game.metascore) }}
@@ -117,9 +117,9 @@
 {% macro gap_flag(gap) %}
   {%- if gap is not none and gap | abs >= 10 -%}
     {%- if gap > 0 -%}
-      <span title="Players rate this {{ gap }} points lower than critics">Players ↓{{ gap }}</span>
+      <span title="Игроки оценивают на {{ gap }} баллов ниже критиков">Игроки ↓{{ gap }}</span>
     {%- else -%}
-      <span title="Players rate this {{ gap | abs }} points higher than critics">Players ↑{{ gap | abs }}</span>
+      <span title="Игроки оценивают на {{ gap | abs }} баллов выше критиков">Игроки ↑{{ gap | abs }}</span>
     {%- endif -%}
   {%- endif -%}
 {% endmacro %}
@@ -158,8 +158,8 @@
       </div>
       {%- if arrows and items | length > 4 %}
       <div class="rail__controls">
-        <button class="icon-btn icon-btn--outline" data-rail-dir="prev" aria-label="Scroll left">‹</button>
-        <button class="icon-btn icon-btn--outline" data-rail-dir="next" aria-label="Scroll right">›</button>
+        <button class="icon-btn icon-btn--outline" data-rail-dir="prev" aria-label="Прокрутить влево">‹</button>
+        <button class="icon-btn icon-btn--outline" data-rail-dir="next" aria-label="Прокрутить вправо">›</button>
       </div>
       {%- endif %}
     </div>

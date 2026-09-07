@@ -254,14 +254,14 @@ class TestEmptySectionCopy:
         note = empty_section_note(
             side=ClaimSide.NEGATIVE, positive_count=86, negative_count=0
         )
-        assert "86 positive reviews" in note
-        assert "none negative" in note
+        assert "положительных рецензий 86" in note
+        assert "отрицательных нет" in note
 
     def test_no_praise_is_stated_informatively(self):
         note = empty_section_note(
             side=ClaimSide.POSITIVE, positive_count=0, negative_count=6056
         )
-        assert "6056 negative reviews" in note
+        assert "отрицательных рецензий 6056" in note
 
 
 def test_report_of_no_claims_is_not_a_failure():

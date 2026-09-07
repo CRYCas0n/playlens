@@ -115,7 +115,7 @@ class TestWhatAPersonSees:
         assert response.status_code == 503
         assert response.headers["content-type"].startswith("text/html")
         assert MIGRATE_COMMAND in response.text
-        assert "has no tables yet" in response.text
+        assert "ещё нет таблиц" in response.text
 
     @pytest.mark.parametrize("path", ["/", "/games", "/games/anything", "/admin/monitoring"])
     def test_every_page_says_the_same_thing(self, empty_db, path):

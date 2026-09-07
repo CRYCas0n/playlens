@@ -246,13 +246,13 @@ def empty_section_note(*, side: ClaimSide, positive_count: int, negative_count: 
     if side is ClaimSide.NEGATIVE:
         if negative_count == 0 and positive_count > 0:
             return (
-                f"Reviewers raise almost no objections: {positive_count} positive reviews, "
-                f"none negative."
+                f"Рецензенты почти ни к чему не придираются: положительных рецензий "
+                f"{positive_count}, отрицательных нет."
             )
-        return "No criticism recurred often enough across reviews to report."
+        return "Ни одна претензия не повторялась в рецензиях достаточно часто, чтобы её приводить."
     if positive_count == 0 and negative_count > 0:
         return (
-            f"Reviewers find almost nothing to praise: {negative_count} negative reviews, "
-            f"none positive."
+            f"Рецензентам почти не за что хвалить: отрицательных рецензий "
+            f"{negative_count}, положительных нет."
         )
-    return "No praise recurred often enough across reviews to report."
+    return "Ни одна похвала не повторялась в рецензиях достаточно часто, чтобы её приводить."

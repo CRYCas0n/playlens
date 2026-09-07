@@ -17,7 +17,7 @@ class TestVerdictTable:
     def test_agreement(self):
         v = verdict_line(critic_score(93, 118), user_score(8.9, 14204))
         assert v.kind is VerdictKind.AGREE
-        assert v.line == "Critics rate this among the year's best, and players agree."
+        assert v.line == "Критики относят игру к лучшему за год, и игроки с ними согласны."
         assert v.delta == 4
         assert v.derived is True
 
@@ -25,30 +25,30 @@ class TestVerdictTable:
         # design/EDGE_CASES.md case 19: northlight-drifters, 88 vs 51.
         v = verdict_line(critic_score(88, 60), user_score(5.1, 3000))
         assert v.kind is VerdictKind.PLAYERS_LOWER
-        assert "players rate it 37 points lower" in v.line
+        assert "игроки ставят на 37 баллов ниже" in v.line
         assert v.delta == 37
 
     def test_players_higher(self):
         # case 20: neon-district-2087, 61 vs 79.
         v = verdict_line(critic_score(61, 40), user_score(7.9, 2000))
         assert v.kind is VerdictKind.PLAYERS_HIGHER
-        assert "players rate it 18 points higher" in v.line
+        assert "игроки ставят на 18 баллов выше" in v.line
         assert v.delta == -18
 
     def test_no_critic_score(self):
         v = verdict_line(critic_score(None, None), user_score(8.2, 300))
         assert v.kind is VerdictKind.PLAYER_ONLY
         # 8.2 -> 82 -> Good tier, so the player sentence is the "reservations" one.
-        assert v.line.startswith("Players recommend it with reservations")
-        assert "No critic score yet." in v.line
+        assert v.line.startswith("Игроки советуют её с оговорками")
+        assert "Оценки критиков пока нет." in v.line
         assert verdict_line(
             critic_score(None, None), user_score(8.9, 300)
-        ).line.startswith("Players rate this among the year's best")
+        ).line.startswith("Игроки относят игру к лучшему за год")
 
     def test_no_player_score(self):
         v = verdict_line(critic_score(74, 20), user_score(0, 1))
         assert v.kind is VerdictKind.CRITIC_ONLY
-        assert "No player score yet." in v.line
+        assert "Оценки игроков пока нет." in v.line
 
     def test_neither(self):
         v = verdict_line(critic_score(None, None), user_score(None, 0))
@@ -103,7 +103,7 @@ class TestPlatformLine:
             best_name="PC",
             best_metascore=critic_score(86, 92),
         )
-        assert line == "On PlayStation 4 critics rate this 29 points lower than on PC."
+        assert line == "На PlayStation 4 критики оценивают игру на 29 баллов ниже, чем на PC."
 
     def test_silent_when_gap_is_small(self):
         assert (
@@ -153,22 +153,22 @@ class TestConsensusNote:
     def test_warning_tone_when_players_are_much_lower(self):
         note = consensus_note(critic_score(88, 60), user_score(5.1, 3000))
         assert note.tone == "warning"
-        assert "37 points lower" in note.text
+        assert "на 37 баллов ниже критиков" in note.text
 
     def test_neutral_when_players_are_higher(self):
         note = consensus_note(critic_score(61, 40), user_score(7.9, 2000))
         assert note.tone == "neutral"
-        assert "18 points higher" in note.text
+        assert "на 18 баллов выше критиков" in note.text
 
     def test_neutral_when_agreeing(self):
         note = consensus_note(critic_score(93, 118), user_score(8.9, 14204))
         assert note.tone == "neutral"
-        assert "broadly agree" in note.text
+        assert "в целом сходятся" in note.text
 
     def test_one_sided(self):
         note = consensus_note(critic_score(93, 118), user_score(0, 1))
         assert note.delta is None
-        assert "nothing to compare" in note.text
+        assert "сравнивать не с чем" in note.text
 
 
 def test_agreement_delta_requires_both_sides():

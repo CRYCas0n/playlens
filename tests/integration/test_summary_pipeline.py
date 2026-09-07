@@ -111,7 +111,7 @@ class TestEldenRingHasNothingToCriticise:
         note = SummaryService.empty_note(
             side=ClaimSide.NEGATIVE, positive_count=86, negative_count=0
         )
-        assert "86 positive reviews" in note and "none negative" in note
+        assert "положительных рецензий 86" in note and "отрицательных нет" in note
 
 
 class TestCostControl:

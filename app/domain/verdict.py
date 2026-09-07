@@ -16,20 +16,20 @@ from app.domain.enums import Tier
 from app.domain.scores import ScoreValue
 
 CRITIC_COPY: dict[Tier, str] = {
-    Tier.EXCELLENT: "Critics rate this among the year's best",
-    Tier.GOOD: "Critics recommend it with reservations",
-    Tier.MIXED: "Critics are split on this one",
-    Tier.POOR: "Critics advise against it",
+    Tier.EXCELLENT: "Критики относят игру к лучшему за год",
+    Tier.GOOD: "Критики советуют её с оговорками",
+    Tier.MIXED: "Мнения критиков разделились",
+    Tier.POOR: "Критики не рекомендуют её",
 }
 
 PLAYER_COPY: dict[Tier, str] = {
-    Tier.EXCELLENT: "Players rate this among the year's best",
-    Tier.GOOD: "Players recommend it with reservations",
-    Tier.MIXED: "Players are split on this one",
-    Tier.POOR: "Players advise against it",
+    Tier.EXCELLENT: "Игроки относят игру к лучшему за год",
+    Tier.GOOD: "Игроки советуют её с оговорками",
+    Tier.MIXED: "Мнения игроков разделились",
+    Tier.POOR: "Игроки не рекомендуют её",
 }
 
-NOTHING_TO_SAY = "Not enough reviews yet to say anything useful."
+NOTHING_TO_SAY = "Рецензий пока слишком мало, чтобы сказать что-то полезное."
 
 
 class VerdictKind(StrEnum):
@@ -89,11 +89,11 @@ def verdict_line(
         return Verdict(NOTHING_TO_SAY, VerdictKind.NONE, None, platform_line, strengths, watch_outs)
 
     if c is None:
-        line = f"{PLAYER_COPY[user.tier]}. No critic score yet."
+        line = f"{PLAYER_COPY[user.tier]}. Оценки критиков пока нет."
         return Verdict(line, VerdictKind.PLAYER_ONLY, None, platform_line, strengths, watch_outs)
 
     if u is None:
-        line = f"{CRITIC_COPY[critic.tier]}. No player score yet."
+        line = f"{CRITIC_COPY[critic.tier]}. Оценки игроков пока нет."
         return Verdict(line, VerdictKind.CRITIC_ONLY, None, platform_line, strengths, watch_outs)
 
     delta = c - u
@@ -101,7 +101,7 @@ def verdict_line(
 
     if abs(delta) < agreement_threshold:
         return Verdict(
-            f"{head}, and players agree.",
+            f"{head}, и игроки с ними согласны.",
             VerdictKind.AGREE,
             delta,
             platform_line,
@@ -110,7 +110,7 @@ def verdict_line(
         )
     if delta > 0:
         return Verdict(
-            f"{head} — but players rate it {delta} points lower.",
+            f"{head} — но игроки ставят на {delta} баллов ниже.",
             VerdictKind.PLAYERS_LOWER,
             delta,
             platform_line,
@@ -118,7 +118,7 @@ def verdict_line(
             watch_outs,
         )
     return Verdict(
-        f"{head} — and players rate it {abs(delta)} points higher.",
+        f"{head} — а игроки ставят на {abs(delta)} баллов выше.",
         VerdictKind.PLAYERS_HIGHER,
         delta,
         platform_line,
@@ -146,32 +146,32 @@ def platform_line(
     delta = best - sel
     if delta < min_points:
         return None
-    return f"On {selected_name} critics rate this {delta} points lower than on {best_name}."
+    return f"На {selected_name} критики оценивают игру на {delta} баллов ниже, чем на {best_name}."
 
 
 # ----------------------------------------------------------------- consensus note
 
 CONSENSUS_AGREE = (
-    "Critics and players broadly agree ({delta} points apart). When both audiences land "
-    "in the same place, the score is a reliable signal."
+    "Критики и игроки в целом сходятся (разница {delta} баллов). Когда обе аудитории "
+    "приходят к одному, оценке можно верить."
 )
 CONSENSUS_LOWER = (
-    "Players rate this {delta} points lower than critics. A gap this wide usually means "
-    "launch condition, monetisation or platform-specific problems. Read the player "
-    "summary before deciding."
+    "Игроки оценивают игру на {delta} баллов ниже критиков. Такой разрыв обычно означает "
+    "состояние на релизе, монетизацию или проблемы на конкретной платформе. Прочитайте "
+    "резюме отзывов игроков, прежде чем решать."
 )
 CONSENSUS_HIGHER = (
-    "Players rate this {delta} points higher than critics. Often a sign of a game whose "
-    "appeal grows past the review window, or one aimed at a specific audience."
+    "Игроки оценивают игру на {delta} баллов выше критиков. Часто это признак игры, "
+    "которая раскрывается уже после выхода рецензий, или игры для своей аудитории."
 )
 CONSENSUS_ONE_SIDED = (
-    "Only one audience has rated this so far, so there is nothing to compare yet. "
-    "Check back once the other side is counted."
+    "Пока оценила только одна аудитория, сравнивать не с чем. "
+    "Загляните позже, когда появится вторая."
 )
 
 AXIS_CAPTION = (
-    "Player scores are published on a 0–10 scale and shown here multiplied by ten. "
-    "Tier bands: 85+ Excellent · 70–84 Good · 50–69 Mixed · below 50 Poor."
+    "Оценки игроков публикуются по шкале 0–10 и показаны здесь умноженными на десять. "
+    "Диапазоны: 85+ отлично · 70–84 хорошо · 50–69 смешанно · ниже 50 плохо."
 )
 
 

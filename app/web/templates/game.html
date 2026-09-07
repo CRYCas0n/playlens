@@ -18,7 +18,7 @@
   </div>
   <div class="ghero__scrim"></div>
   <div class="container ghero__inner">
-    <a class="t-body-sm t-muted" href="/games" style="display:inline-block;margin-bottom:var(--sp-7)">‹ All games</a>
+    <a class="t-body-sm t-muted" href="/games" style="display:inline-block;margin-bottom:var(--sp-7)">‹ Все игры</a>
     <div class="ghero__grid">
       <div class="ghero__cover">{{ m.cover(game.title, game.cover_url, 480) }}</div>
       <div class="stack gap-6">
@@ -32,7 +32,7 @@
           {%- for company in game.publishers %}<span>{{ company.name }}</span><span class="dot"></span>{% endfor %}
           {%- if game.release_date %}<span>{{ game.release_date | date_long }}</span><span class="dot"></span>{% endif %}
           {#- The ONLY place page-level freshness appears (design/PAGES.md 1.2). -#}
-          <span class="t-muted">Updated {{ game.updated_at | ago }}</span>
+          <span class="t-muted">обновлено {{ game.updated_at | ago }}</span>
         </div>
         <div class="plats">{{ m.platform_chips(game.platforms | map(attribute='platform') | list, lead=True) }}</div>
       </div>
@@ -43,14 +43,14 @@
 <div class="container" style="padding-top:var(--sp-9)">
   <div class="verdict">
     <div class="verdict__col">
-      <span class="verdict__col-label">Critics</span>
+      <span class="verdict__col-label">Критики</span>
       {{ m.gauge(game.metascore) }}
-      <span class="verdict__col-sub">{% if game.metascore.review_count %}{{ game.metascore.review_count | thousands }} reviews{% else %}no reviews{% endif %}</span>
+      <span class="verdict__col-sub">{% if game.metascore.review_count %}{{ game.metascore.review_count | thousands }} {{ game.metascore.review_count | plural_ru('рецензия', 'рецензии', 'рецензий') }}{% else %}нет рецензий{% endif %}</span>
     </div>
     <div class="verdict__col">
-      <span class="verdict__col-label">Players</span>
+      <span class="verdict__col-label">Игроки</span>
       {{ m.gauge(game.userscore, small=True) }}
-      <span class="verdict__col-sub">{% if game.userscore.review_count %}{{ game.userscore.review_count | thousands }} ratings{% else %}no ratings{% endif %}</span>
+      <span class="verdict__col-sub">{% if game.userscore.review_count %}{{ game.userscore.review_count | thousands }} {{ game.userscore.review_count | plural_ru('оценка', 'оценки', 'оценок') }}{% else %}нет оценок{% endif %}</span>
     </div>
     <div class="verdict__body">
       {#- Composed from the two numbers above, so it cannot contradict them and needs no
@@ -63,7 +63,7 @@
       <div class="signals">
         {%- if game.verdict.strengths %}
         <div class="signals__row">
-          <span class="signals__legend">Strengths</span>
+          <span class="signals__legend">Сильные стороны</span>
           {%- for item in game.verdict.strengths %}
           <span class="signal signal--pos"><span class="signal__glyph" aria-hidden="true">+</span>{{ item }}</span>
           {%- endfor %}
@@ -71,7 +71,7 @@
         {%- endif %}
         {%- if game.verdict.watch_outs %}
         <div class="signals__row">
-          <span class="signals__legend">Watch-outs</span>
+          <span class="signals__legend">На что обратить внимание</span>
           {%- for item in game.verdict.watch_outs %}
           <span class="signal signal--neg"><span class="signal__glyph" aria-hidden="true">−</span>{{ item }}</span>
           {%- endfor %}
@@ -84,13 +84,13 @@
 </div>
 
 {% set sections = [] %}
-{% set _ = sections.append(('scores', 'Scores')) %}
-{% set _ = sections.append(('about', 'What it is')) %}
-{% set _ = sections.append(('reviews', 'Critics & players')) %}
-{% if game.lets_play %}{% set _ = sections.append(('letsplay', 'Gameplay')) %}{% endif %}
-{% set _ = sections.append(('similar', 'Similar games')) %}
+{% set _ = sections.append(('scores', 'Оценки')) %}
+{% set _ = sections.append(('about', 'Об игре')) %}
+{% set _ = sections.append(('reviews', 'Критики и игроки')) %}
+{% if game.lets_play %}{% set _ = sections.append(('letsplay', 'Геймплей')) %}{% endif %}
+{% set _ = sections.append(('similar', 'Похожие игры')) %}
 
-<nav class="subnav" aria-label="Sections" style="margin-top:var(--sp-9)">
+<nav class="subnav" aria-label="Разделы" style="margin-top:var(--sp-9)">
   <div class="container subnav__inner">
     {%- for anchor, label in sections %}
     <a class="subnav__link{% if loop.first %} is-active{% endif %}" href="#{{ anchor }}">{{ label }}</a>
@@ -102,13 +102,13 @@
 
   <section class="sec" id="scores">
     <div class="sec__head"><div class="sec__title-wrap">
-      <h2 class="t-h2">Scores</h2>
-      <p class="rail__purpose">Both audiences on one 0–100 axis, so the comparison is honest.</p>
+      <h2 class="t-h2">Оценки</h2>
+      <p class="rail__purpose">Обе аудитории в одной шкале 0–100 — иначе сравнение нечестное.</p>
     </div></div>
     <div class="two-col">
       <div class="consensus">
-        {{ m.score_bar('Critics', game.metascore) }}
-        {{ m.score_bar('Players', game.userscore) }}
+        {{ m.score_bar('Критики', game.metascore) }}
+        {{ m.score_bar('Игроки', game.userscore) }}
         <div class="consensus__note{% if game.consensus.tone == 'warning' %} consensus__note--warn{% endif %}">
           <span class="info-dot" aria-hidden="true">{% if game.consensus.tone == 'warning' %}!{% else %}i{% endif %}</span>
           <span>{{ game.consensus.note }}</span>
@@ -117,7 +117,7 @@
         <p class="t-caption t-muted">{{ game.consensus.axis_caption }}</p>
       </div>
       <div>
-        <h3 class="t-h3" style="margin-bottom:var(--sp-5)">By platform</h3>
+        <h3 class="t-h3" style="margin-bottom:var(--sp-5)">По платформам</h3>
         {%- if game.platforms and not game.platform_scores_pending %}
         <div class="plat-rows">
           {%- for row in game.platforms %}
@@ -127,15 +127,15 @@
             {{ m.score_chip(row.metascore, small=True) }}
             <button class="icon-btn" type="button"
                     data-prefer-platform="{{ row.platform.slug }}"
-                    aria-label="Use {{ row.platform.name }} as my platform"
-                    title="Use {{ row.platform.name }} as my platform">★</button>
+                    aria-label="Сделать {{ row.platform.name }} моей платформой"
+                    title="Сделать {{ row.platform.name }} моей платформой">★</button>
           </div>
           {%- endfor %}
         </div>
         {%- elif game.platforms %}
         {#- The platforms are real; only their scores are missing, so the section stays
             with a pending block (design/EDGE_CASES.md case 18). -#}
-        {{ m.pending('Pending', 'Per-platform scores appear once each version has enough critic reviews. ' ~ game.platforms | length ~ ' platforms are indexed.') }}
+        {{ m.pending('Ожидается', 'Оценки по платформам появятся, когда у каждой версии наберётся достаточно рецензий. Проиндексировано платформ: ' ~ game.platforms | length ~ '.') }}
         <div class="plats" style="margin-top:var(--sp-6)">
           {{ m.platform_chips(game.platforms | map(attribute='platform') | list) }}
         </div>
@@ -145,30 +145,30 @@
   </section>
 
   <section class="sec" id="about">
-    <div class="sec__head"><div class="sec__title-wrap"><h2 class="t-h2">What it is</h2></div></div>
+    <div class="sec__head"><div class="sec__title-wrap"><h2 class="t-h2">Об игре</h2></div></div>
     {%- if game.description %}
     <p class="t-body-lg t-prose">{{ game.description }}</p>
     {%- else %}
-    <p class="t-body-lg t-muted">No description has been indexed for this game yet.</p>
+    <p class="t-body-lg t-muted">Описание для этой игры пока не проиндексировано.</p>
     {%- endif %}
     <div class="row gap-4 row--wrap" style="margin-top:var(--sp-6)">
       <span class="src">Metacritic</span>
-      <span class="t-caption t-muted">Description and metadata are taken from the source listing, unedited.</span>
+      <span class="t-caption t-muted">Описание и метаданные взяты из карточки источника без изменений.</span>
       {#- Deliberately a link and not an embed, and deliberately not called a "trailer":
           the field is whatever video the source attached (C-27, ADR-019 section 4). -#}
       {%- if game.video %}
       <a class="t-link t-body-sm" href="{{ game.video.url }}" target="_blank" rel="noopener nofollow">
-        Video: {{ game.video.title or 'watch on the source site' }} ↗
+        Видео: {{ game.video.title or 'смотреть на сайте источника' }} ↗
       </a>
       {%- endif %}
-      <a class="t-link t-body-sm" href="{{ game.source_url }}" target="_blank" rel="noopener nofollow">Open on Metacritic ↗</a>
+      <a class="t-link t-body-sm" href="{{ game.source_url }}" target="_blank" rel="noopener nofollow">Открыть на Metacritic ↗</a>
     </div>
   </section>
 
   <section class="sec" id="reviews">
     <div class="sec__head"><div class="sec__title-wrap">
-      <h2 class="t-h2">Critics &amp; players</h2>
-      <p class="rail__purpose">Side by side, because the difference between them is the point.</p>
+      <h2 class="t-h2">Критики и игроки</h2>
+      <p class="rail__purpose">Рядом — потому что разница между ними и есть самое важное.</p>
     </div></div>
     <div class="summaries">
       {% include "partials/summary.html" with context %}
@@ -177,8 +177,8 @@
     <div class="consensus__note consensus__note--warn" style="margin-top:var(--sp-8)">
       <span class="info-dot" aria-hidden="true">!</span>
       <span>
-        <strong>Why they disagree.</strong> {{ game.gap.explanation }}
-        <span class="t-caption t-muted">Likely cause, drawn from {{ game.gap.evidence | length }} cited reviews on both sides.</span>
+        <strong>Почему они расходятся.</strong> {{ game.gap.explanation }}
+        <span class="t-caption t-muted">Вероятная причина; учтено {{ game.gap.evidence | length }} {{ game.gap.evidence | length | plural_ru('цитируемая рецензия', 'цитируемые рецензии', 'цитируемых рецензий') }} с обеих сторон.</span>
       </span>
     </div>
     {%- endif %}
@@ -193,15 +193,15 @@
   <section class="sec" id="similar" data-rail>
     <div class="sec__head">
       <div class="sec__title-wrap">
-        <h2 class="t-h2">If you like this</h2>
+        <h2 class="t-h2">Если понравилась эта</h2>
         {%- if game.similar %}
-        <p class="rail__purpose">Matched against games already in our index.{% if game.similar | selectattr('reason') | list %} Where we can say why, we do.{% endif %}</p>
+        <p class="rail__purpose">Подобрано среди игр, уже попавших в наш индекс.{% if game.similar | selectattr('reason') | list %} Где можем объяснить почему — объясняем.{% endif %}</p>
         {%- endif %}
       </div>
       {%- if game.similar | length > 4 %}
       <div class="rail__controls">
-        <button class="icon-btn icon-btn--outline" data-rail-dir="prev" aria-label="Scroll left">‹</button>
-        <button class="icon-btn icon-btn--outline" data-rail-dir="next" aria-label="Scroll right">›</button>
+        <button class="icon-btn icon-btn--outline" data-rail-dir="prev" aria-label="Прокрутить влево">‹</button>
+        <button class="icon-btn icon-btn--outline" data-rail-dir="next" aria-label="Прокрутить вправо">›</button>
       </div>
       {%- endif %}
     </div>
@@ -213,10 +213,10 @@
     {#- An honest empty state. Padding the rail with loosely-related games destroys trust
         in every other recommendation on the site (design/EDGE_CASES.md case 14). -#}
     {{ m.empty_state(
-        'Nothing comparable yet',
-        'We only suggest games that are already in our index, and none of them are close
-         enough to this one to be worth your time. This updates as the catalogue grows.',
-        'Browse by genre instead', '/games', variant='inline') }}
+        'Похожих пока нет',
+        'Мы предлагаем только игры, уже попавшие в индекс, и ни одна из них не близка к
+         этой настолько, чтобы тратить ваше время. Это изменится по мере роста каталога.',
+        'Посмотреть каталог', '/games', variant='inline') }}
     {%- endif %}
   </section>
 </div>
@@ -226,9 +226,9 @@
   {{ m.score_chip(game.userscore, kind='USR') }}
   <span class="spacer"></span>
   {%- if game.similar %}
-  <a class="btn btn--secondary btn--sm" href="#similar">Similar games</a>
+  <a class="btn btn--secondary btn--sm" href="#similar">Похожие игры</a>
   {%- else %}
-  <a class="btn btn--secondary btn--sm" href="/games">All games</a>
+  <a class="btn btn--secondary btn--sm" href="/games">Все игры</a>
   {%- endif %}
 </div>
 {% endblock %}

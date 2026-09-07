@@ -41,6 +41,15 @@ Output rules:
 - Never state a fact about the game that no supplied review states.
 - Never use an imperative. Write "players report", "reviewers describe", not "buy this".
 - Report what reviewers said. Do not add your own opinion or your own score.
+
+Language. The site is read in Russian, but the reviews are in English and every claim is
+checked against them mechanically, word by word. So write each claim TWICE:
+- `claim`: English, in the vocabulary of the reviews it cites. This is the field that is
+  verified. A claim whose wording does not overlap the reviews it cites is discarded.
+- `claim_ru`: the same claim in natural Russian. A faithful rendering of `claim` and not a
+  new thought -- same aspect, same strength, no detail that is not in the English.
+  Translate the substance, not the words: no calques, no English word order.
+Write the `overall` paragraph and the `heading` in Russian only.
 """
 
 _CORPUS_FRAME = """\
@@ -122,6 +131,9 @@ supplied reviews.
   explanation is correct; an invented one is not.
 - Only attribute the gap to timing (launch state, a later patch) when the dates on the
   reviews you cite support it.
+
+Write the explanation in Russian. Nothing here is checked by word overlap -- it is a
+paragraph, not a list of claims -- so there is no English original to keep.
 """
 
 
@@ -164,6 +176,9 @@ like to play, using only what the transcript shows.
   not want to know in advance does not belong in this summary.
 - This is one person's experience. Say so.
 - If the transcript does not support a claim, do not make it.
+
+Write in Russian. This summary is grounded in one transcript rather than checked against
+a corpus of reviews, so there is no verified English wording to preserve.
 """
 
 

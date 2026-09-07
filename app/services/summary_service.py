@@ -484,6 +484,7 @@ class SummaryService:
                     "side": item.side.value,
                     "aspect": item.claim.aspect.value,
                     "claim": item.claim.claim,
+                    "claim_ru": item.claim.claim_ru,
                     "claim_type": item.claim.claim_type.value,
                     "evidence_refs": list(item.claim.evidence),
                     "strength": item.claim.strength,

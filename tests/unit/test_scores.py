@@ -70,7 +70,7 @@ class TestUserscoreZeroRule:
         assert score.value is None
         assert score.normalized is None
         assert score.tier is Tier.NONE
-        assert score.tier_label == "Not rated"
+        assert score.tier_label == "Без оценки"
 
     @pytest.mark.parametrize(
         ("game", "raw", "count", "expected_norm"),
@@ -151,7 +151,7 @@ class TestSerialisation:
         assert payload["value"] is None
         assert payload["normalized"] is None
         assert payload["status"] == "unavailable"
-        assert payload["tier_label"] == "Not rated"
+        assert payload["tier_label"] == "Без оценки"
 
     def test_dict_keeps_native_and_normalised(self):
         payload = user_score(8.9, 14204).as_dict()

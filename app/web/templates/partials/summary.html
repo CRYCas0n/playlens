@@ -14,7 +14,7 @@
   <div class="summary__head">
     <div class="summary__who">
       <span class="summary__eyebrow">{{ eyebrow }}</span>
-      <span class="t-h3">{% if score.review_count %}Summary in progress{% else %}Nothing to summarise yet{% endif %}</span>
+      <span class="t-h3">{% if score.review_count %}Резюме готовится{% else %}Пока нечего резюмировать{% endif %}</span>
     </div>
     {%- if score.status == 'valid' %}
     <span class="score score-chip {{ score | tier_class }}">{{ score | score_text }} · {{ score.tier_label }}</span>
@@ -24,9 +24,9 @@
     {#- "Coming" is not "nothing": a pending summary keeps its section, unlike a
         Let's Play that will never exist (design/README.md non-negotiable 9). -#}
     {%- if score.review_count %}
-    <span class="badge badge--brand">Generating</span><span>{{ pending_with_reviews }}</span>
+    <span class="badge badge--brand">Составляется</span><span>{{ pending_with_reviews }}</span>
     {%- else %}
-    <span class="badge">Waiting</span><span>{{ pending_empty }}</span>
+    <span class="badge">Ожидание</span><span>{{ pending_empty }}</span>
     {%- endif %}
   </div>
   {%- else %}
@@ -44,17 +44,17 @@
   <div class="clamp" data-expanded="false">
     <div class="clamp__body"><p class="summary__consensus">{{ summary.overall }}</p></div>
     <button class="btn btn--ghost btn--sm clamp__toggle" aria-expanded="false"
-            data-more="Read full summary" data-less="Show less">Read full summary</button>
+            data-more="Читать полностью" data-less="Свернуть">Читать полностью</button>
   </div>
   {%- endif %}
 
   <div class="points">
-    <span class="points__legend">Most praised</span>
+    <span class="points__legend">Чаще всего хвалят</span>
     {%- if summary.positive %}
       {%- for claim in summary.positive %}
       <span class="point point--pos">
         <span class="point__glyph" aria-hidden="true">+</span>
-        <span>{{ claim.claim }}<span class="t-caption t-muted"> ({{ claim.evidence | length }} reviews)</span></span>
+        <span>{{ claim.text }}<span class="t-caption t-muted"> ({{ claim.evidence | length }} {{ claim.evidence | length | plural_ru('рецензия', 'рецензии', 'рецензий') }})</span></span>
       </span>
       {%- endfor %}
     {%- else %}
@@ -64,12 +64,12 @@
   </div>
 
   <div class="points">
-    <span class="points__legend">Most criticised</span>
+    <span class="points__legend">Чаще всего ругают</span>
     {%- if summary.negative %}
       {%- for claim in summary.negative %}
       <span class="point point--neg">
         <span class="point__glyph" aria-hidden="true">−</span>
-        <span>{{ claim.claim }}<span class="t-caption t-muted"> ({{ claim.evidence | length }} reviews)</span></span>
+        <span>{{ claim.text }}<span class="t-caption t-muted"> ({{ claim.evidence | length }} {{ claim.evidence | length | plural_ru('рецензия', 'рецензии', 'рецензий') }})</span></span>
       </span>
       {%- endfor %}
     {%- else %}
@@ -79,32 +79,32 @@
 
   <div class="provenance">
     <span class="src src--ai">
-      <svg class="src__glyph" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14 9l7 2-7 2-2 7-2-7-7-2 7-2z"/></svg>AI summary
+      <svg class="src__glyph" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 14 9l7 2-7 2-2 7-2-7-7-2 7-2z"/></svg>Резюме ИИ
     </span>
     {#- The source count is never dropped: "93 from 118 critics" and "93 from 4 critics"
         are different claims (design/UX_SPEC.md section 6). -#}
-    <span>Compressed from {{ summary.provenance.reviews_used | thousands }} of
-      {{ summary.provenance.reviews_candidates | thousands }} indexed {{ unit }}</span>
+    <span>Сжато из {{ summary.provenance.reviews_used | thousands }} проиндексированных
+      {{ unit }} (всего {{ summary.provenance.reviews_candidates | thousands }})</span>
     <span class="provenance__sep">·</span>
-    <span>Updated {{ summary.provenance.generated_at | ago }}</span>
+    <span>обновлено {{ summary.provenance.generated_at | ago }}</span>
     {%- if summary.provenance.source_url %}
     <span class="provenance__sep">·</span>
-    <a class="t-link" href="{{ summary.provenance.source_url }}" target="_blank" rel="noopener nofollow">Read them on Metacritic ↗</a>
+    <a class="t-link" href="{{ summary.provenance.source_url }}" target="_blank" rel="noopener nofollow">Читать на Metacritic ↗</a>
     {%- endif %}
     <span class="info-dot"
-          title="This paragraph is written by a language model from the indexed reviews. It is a summary of what reviewers said — not a review by {{ app_name }}, and not a quote from any single reviewer. Every point lists how many reviews support it."
-          aria-label="How this summary is made">i</span>
+          title="Этот текст написан языковой моделью по проиндексированным рецензиям. Это пересказ того, что сказали рецензенты, — не рецензия {{ app_name }} и не цитата какого-либо одного автора. У каждого пункта указано, сколько рецензий его подтверждают."
+          aria-label="Как составлено это резюме">i</span>
   </div>
   {%- endif %}
 </div>
 {% endmacro %}
 
 {{ summary_block(
-    game.critic_summary, 'What critics say', game.metascore, 'critic reviews',
-    'We have ' ~ (game.metascore.review_count | thousands) ~ ' critic reviews indexed and the summary is still generating. It usually takes a few minutes.',
-    'No critic reviews have been indexed yet, so there is nothing to summarise.') }}
+    game.critic_summary, 'Что говорят критики', game.metascore, 'рецензий критиков',
+    'Проиндексировано рецензий критиков: ' ~ (game.metascore.review_count | thousands) ~ '. Резюме ещё составляется — обычно это занимает несколько минут.',
+    'Рецензий критиков пока нет, резюмировать нечего.') }}
 
 {{ summary_block(
-    game.user_summary, 'What players say', game.userscore, 'player reviews',
-    'We have ' ~ (game.userscore.review_count | thousands) ~ ' player ratings indexed. A summary needs enough reviews with text, which usually arrive a few days after release.',
-    'No player reviews yet. Player scores typically start landing a few days after release.') }}
+    game.user_summary, 'Что говорят игроки', game.userscore, 'отзывов игроков',
+    'Проиндексировано оценок игроков: ' ~ (game.userscore.review_count | thousands) ~ '. Для резюме нужны отзывы с текстом — они обычно появляются через несколько дней после выхода.',
+    'Отзывов игроков пока нет. Оценки игроков обычно начинают приходить через несколько дней после релиза.') }}

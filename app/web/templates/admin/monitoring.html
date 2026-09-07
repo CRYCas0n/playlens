@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Pipeline — {{ app_name }}{% endblock %}
+{% block title %}Конвейер — {{ app_name }}{% endblock %}
 
 {% block content %}
 {#
@@ -12,34 +12,34 @@
 
   <div class="sec__head">
     <div class="sec__title-wrap">
-      <h1 class="t-h1">Pipeline</h1>
+      <h1 class="t-h1">Конвейер</h1>
       <p class="rail__purpose" id="system-message">{{ status.system.message }}</p>
     </div>
     <div class="row gap-4">
       <span class="status status--{{ {'healthy':'ok','degraded':'warn','down':'err'}[status.system.status] }}">
-        <span class="status__dot"></span>{{ status.system.status | capitalize }}
+        <span class="status__dot"></span>{{ {'healthy':'В норме','degraded':'Частично','down':'Не работает'}.get(status.system.status, status.system.status) }}
       </span>
-      <span class="status status--idle" id="stream-state"><span class="status__dot"></span>Connecting</span>
-      <button class="btn btn--primary" id="run-now" type="button">Run now</button>
+      <span class="status status--idle" id="stream-state"><span class="status__dot"></span>Подключение</span>
+      <button class="btn btn--primary" id="run-now" type="button">Запустить сейчас</button>
     </div>
   </div>
 
   <div class="row gap-4 row--wrap" style="margin-bottom:var(--sp-8)">
     <span class="t-caption t-muted">
-      Cadence {{ status.schedule.cadence }} ({{ status.schedule.timezone }}) ·
-      max {{ status.schedule.max_games_per_run }} games per run ·
-      source {{ status.system.source }} ·
-      AI {{ 'on' if status.system.llm_enabled else 'off' }} ·
-      YouTube {{ 'on' if status.system.youtube_enabled else 'off' }}
+      Расписание {{ status.schedule.cadence }} ({{ status.schedule.timezone }}) ·
+      не более {{ status.schedule.max_games_per_run }} игр за запуск ·
+      источник {{ status.system.source }} ·
+      ИИ {{ 'вкл' if status.system.llm_enabled else 'выкл' }} ·
+      YouTube {{ 'вкл' if status.system.youtube_enabled else 'выкл' }}
     </span>
   </div>
 
   <div class="kpis">
     {% set kpis = [
-      ('Games processed · 24h', 'counters24h.games_processed', status.counters24h.runs ~ ' scheduled runs'),
-      ('Success rate · 24h', 'counters24h.success_rate', (status.counters24h.succeeded | string) ~ ' succeeded'),
-      ('Failures · 24h', 'counters24h.failed', 'skipped duplicates: ' ~ status.counters24h.skipped_duplicates),
-      ('Average run', 'counters24h.avg_duration_ms', 'last run ' ~ (status.schedule.last_run_at | ago)),
+      ('Обработано игр · 24 ч', 'counters24h.games_processed', 'запусков по расписанию: ' ~ status.counters24h.runs),
+      ('Доля успешных · 24 ч', 'counters24h.success_rate', 'успешно: ' ~ (status.counters24h.succeeded | string)),
+      ('Сбоев · 24 ч', 'counters24h.failed', 'пропущено дублей: ' ~ status.counters24h.skipped_duplicates),
+      ('Средний запуск', 'counters24h.avg_duration_ms', 'последний ' ~ (status.schedule.last_run_at | ago)),
     ] %}
     {% for label, path, sub in kpis %}
     <div class="kpi">
@@ -54,7 +54,7 @@
   </div>
 
   <section class="sec">
-    <h2 class="t-h3">Current job</h2>
+    <h2 class="t-h3">Текущая задача</h2>
     {% if status.current_job %}
     <div class="job">
       <span class="mono">{{ status.current_job.id }}</span>
@@ -67,14 +67,14 @@
     </div>
     {% else %}
     <p class="t-body-sm t-muted">
-      Nothing is running. Next scheduled run
-      {% if status.schedule.next_run_at %}at {{ status.schedule.next_run_at.strftime('%H:%M') }} UTC{% else %}is not scheduled{% endif %}.
+      Сейчас ничего не выполняется. Следующий запуск по расписанию
+      {% if status.schedule.next_run_at %}в {{ status.schedule.next_run_at.strftime('%H:%M') }} UTC{% else %}не назначен{% endif %}.
     </p>
     {% endif %}
   </section>
 
   <section class="sec">
-    <h2 class="t-h3">Stages</h2>
+    <h2 class="t-h3">Этапы</h2>
     {#- Modelled on THIS product's pipeline, not a generic job list, so a stall is
         located in one glance. -#}
     <div class="stages">
@@ -92,10 +92,10 @@
 
   <div class="two-col">
     <section class="sec">
-      <h2 class="t-h3">Workers</h2>
+      <h2 class="t-h3">Воркеры</h2>
       {% if status.workers %}
       <div class="table-wrap"><table class="table">
-        <thead><tr><th>Worker</th><th>Queues</th><th>State</th><th>Active</th><th>Last seen</th></tr></thead>
+        <thead><tr><th>Воркер</th><th>Очереди</th><th>Состояние</th><th>В работе</th><th>Был на связи</th></tr></thead>
         <tbody>
         {% for worker in status.workers %}
         <tr>
@@ -110,16 +110,16 @@
         </tbody>
       </table></div>
       {% else %}
-      <p class="t-body-sm t-muted">No worker has reported in. Queued work is waiting; the
-      catalogue and the API are unaffected.</p>
+      <p class="t-body-sm t-muted">Ни один воркер не выходил на связь. Задачи в очереди
+      ждут; на каталог и API это не влияет.</p>
       {% endif %}
     </section>
 
     <section class="sec">
-      <h2 class="t-h3">Queues</h2>
+      <h2 class="t-h3">Очереди</h2>
       {% if status.queues %}
       <div class="table-wrap"><table class="table">
-        <thead><tr><th>Queue</th><th>Status</th><th>Depth</th><th>Oldest</th></tr></thead>
+        <thead><tr><th>Очередь</th><th>Статус</th><th>Глубина</th><th>Самая старая</th></tr></thead>
         <tbody>
         {% for row in status.queues %}
         <tr>
@@ -130,35 +130,35 @@
         </tbody>
       </table></div>
       {% else %}
-      <p class="t-body-sm t-muted">Every queue is empty.</p>
+      <p class="t-body-sm t-muted">Все очереди пусты.</p>
       {% endif %}
     </section>
   </div>
 
   <section class="sec">
-    <h2 class="t-h3">Data quality</h2>
+    <h2 class="t-h3">Качество данных</h2>
     {#- Product metrics, added on top of what the assignment lists: an operator needs to
         know that users are seeing empty cards, not that a worker moved 47 rows. -#}
     <div class="kpis">
-      <div class="kpi"><span class="kpi__label">Games</span>
+      <div class="kpi"><span class="kpi__label">Игр</span>
         <span class="kpi__value">{{ status.data_quality.games_total }}</span>
-        <span class="kpi__sub">{{ status.data_quality.with_metascore }} with a critic score</span></div>
-      <div class="kpi"><span class="kpi__label">With summaries</span>
+        <span class="kpi__sub">{{ status.data_quality.with_metascore }} с оценкой критиков</span></div>
+      <div class="kpi"><span class="kpi__label">С резюме</span>
         <span class="kpi__value">{{ status.data_quality.summary_coverage_pct if status.data_quality.summary_coverage_pct is not none else '—' }}%</span>
         <span class="kpi__sub">{{ status.data_quality.with_summaries }} games</span></div>
-      <div class="kpi"><span class="kpi__label">With similar games</span>
+      <div class="kpi"><span class="kpi__label">С похожими</span>
         <span class="kpi__value">{{ status.data_quality.similarity_coverage_pct if status.data_quality.similarity_coverage_pct is not none else '—' }}%</span>
-        <span class="kpi__sub">3 or more above the threshold</span></div>
-      <div class="kpi"><span class="kpi__label">Claim acceptance</span>
+        <span class="kpi__sub">от 3 подтверждений и выше</span></div>
+      <div class="kpi"><span class="kpi__label">Принято утверждений</span>
         <span class="kpi__value">{{ status.ai.claim_acceptance_pct if status.ai.claim_acceptance_pct is not none else '—' }}%</span>
         <span class="kpi__sub">${{ '%.2f' | format(status.ai.cost_usd) }} of ${{ status.ai.daily_limit_usd }} · 24h</span></div>
     </div>
   </section>
 
   <section class="sec">
-    <h2 class="t-h3">Run history</h2>
+    <h2 class="t-h3">История запусков</h2>
     <div class="table-wrap"><table class="table">
-      <thead><tr><th>Run</th><th>Started</th><th>Duration</th><th>Discovered</th><th>Claimed</th><th>Duplicates</th><th>Result</th></tr></thead>
+      <thead><tr><th>Запуск</th><th>Начало</th><th>Длительность</th><th>Найдено</th><th>Взято</th><th>Дублей</th><th>Итог</th></tr></thead>
       <tbody>
       {% for run in status.runs %}
       <tr>
@@ -171,14 +171,14 @@
         <td><span class="badge badge--{{ {'succeeded':'success','partial':'warning','failed':'error','running':'brand','cancelled':'warning'}.get(run.status,'') }}">{{ run.status }}</span></td>
       </tr>
       {% else %}
-      <tr><td colspan="7" class="t-muted">No runs recorded yet.</td></tr>
+      <tr><td colspan="7" class="t-muted">Запусков пока не было.</td></tr>
       {% endfor %}
       </tbody>
     </table></div>
   </section>
 
   <section class="sec">
-    <h2 class="t-h3">Recent problems</h2>
+    <h2 class="t-h3">Последние проблемы</h2>
     {#- Operator-facing text keeps its technical content. Vagueness is not kindness when
         the reader's job is to fix it. -#}
     <div class="log" id="event-feed">
@@ -190,7 +190,7 @@
         <span class="mono t-muted">{{ problem.ref }}</span>
       </div>
       {% else %}
-      <div class="log__row t-muted">Nothing to report. No warnings or errors in the last 24 hours.</div>
+      <div class="log__row t-muted">Сообщать не о чем: за последние 24 часа ни предупреждений, ни ошибок.</div>
       {% endfor %}
     </div>
   </section>

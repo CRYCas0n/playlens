@@ -116,6 +116,7 @@ def _claims(summary, side: ClaimSide) -> list[ClaimOut]:
         ClaimOut(
             aspect=c.aspect,
             claim=c.claim,
+            claim_ru=c.claim_ru,
             claim_type=c.claim_type,
             evidence=list(c.evidence_refs or []),
             strength=c.strength,

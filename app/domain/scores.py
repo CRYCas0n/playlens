@@ -24,12 +24,14 @@ TIER_EXCELLENT_MIN = 85
 TIER_GOOD_MIN = 70
 TIER_MIXED_MIN = 50
 
+#: Shown to the reader, so Russian. The Tier *values* stay English -- they are stored in
+#: the database, checked by a constraint and used as CSS class names.
 TIER_LABELS: dict[Tier, str] = {
-    Tier.EXCELLENT: "Excellent",
-    Tier.GOOD: "Good",
-    Tier.MIXED: "Mixed",
-    Tier.POOR: "Poor",
-    Tier.NONE: "Not rated",
+    Tier.EXCELLENT: "Отлично",
+    Tier.GOOD: "Хорошо",
+    Tier.MIXED: "Смешанно",
+    Tier.POOR: "Плохо",
+    Tier.NONE: "Без оценки",
 }
 
 

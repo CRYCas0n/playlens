@@ -62,6 +62,27 @@ def _thousands(value: Any) -> str:
         return "0"
 
 
+def _plural_ru(value: Any, one: str, few: str, many: str) -> str:
+    """Russian has three plural forms, and the choice is not "1 vs the rest".
+
+    ``1 игра``, ``2 игры``, ``5 игр`` -- and ``11 игр``, ``21 игра``, ``111 игр``. Writing
+    ``игр{{ '' if n == 1 else 'ы' }}`` in a template is wrong for most numbers, so the
+    rule lives here once.
+    """
+    try:
+        number = abs(int(value))
+    except (TypeError, ValueError):
+        return many
+    if number % 100 in range(11, 15):
+        return many
+    last = number % 10
+    if last == 1:
+        return one
+    if last in (2, 3, 4):
+        return few
+    return many
+
+
 def _compact(value: Any) -> str:
     try:
         number = int(value)
@@ -127,6 +148,7 @@ templates.env.filters.update(
         "tier_class": _tier_class,
         "score_text": _score_text,
         "thousands": _thousands,
+        "plural_ru": _plural_ru,
         "compact": _compact,
         "ago": _ago,
         "date_long": _date_long,

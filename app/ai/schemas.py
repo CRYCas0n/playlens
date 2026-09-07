@@ -45,7 +45,15 @@ class ClaimOut(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     aspect: Aspect
+    #: English, in the reviews' own vocabulary. This is the field the validator checks:
+    #: rule 6 intersects its tokens with the cited review text, and a Russian sentence
+    #: shares no tokens with an English review, so validating the translation instead
+    #: would reject every claim ever made.
     claim: str = Field(max_length=MAX_CLAIM_CHARS)
+    #: The same claim in Russian, which is what a reader sees. Empty is allowed and falls
+    #: back to `claim`: a missing translation should cost the reader a language, not the
+    #: whole finding.
+    claim_ru: str = Field(default="", max_length=MAX_CLAIM_CHARS)
 
     _coerce_aspect = field_validator("aspect", mode="before")(_known_aspect)
     claim_type: ClaimType = ClaimType.DESCRIPTIVE

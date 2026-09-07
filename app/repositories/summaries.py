@@ -265,6 +265,7 @@ class SummaryRepository:
                     side=claim["side"],
                     aspect=claim["aspect"],
                     claim=claim["claim"],
+                    claim_ru=claim.get("claim_ru") or None,
                     claim_type=claim["claim_type"],
                     evidence_refs=claim.get("evidence_refs", []),
                     strength=claim.get("strength"),

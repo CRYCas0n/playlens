@@ -10,15 +10,15 @@
 
 <div class="sec__head">
   <div class="sec__title-wrap">
-    <h2 class="t-h2">See it played</h2>
-    <p class="rail__purpose">One long-form playthrough, summarised. Useful when a score cannot tell you how a game feels.</p>
+    <h2 class="t-h2">Посмотреть в деле</h2>
+    <p class="rail__purpose">Одно длинное прохождение, кратко. Полезно, когда оценка не передаёт ощущения от игры.</p>
   </div>
-  <a class="btn btn--secondary" href="{{ lp.url }}" target="_blank" rel="noopener nofollow">Watch on YouTube ↗</a>
+  <a class="btn btn--secondary" href="{{ lp.url }}" target="_blank" rel="noopener nofollow">Смотреть на YouTube ↗</a>
 </div>
 
 <div class="lp">
   <a class="video" href="{{ lp.url }}" target="_blank" rel="noopener nofollow"
-     aria-label="Watch {{ lp.title }} on YouTube">
+     aria-label="Смотреть «{{ lp.title }}» на YouTube">
     {%- if lp.thumbnail_url %}<img src="{{ lp.thumbnail_url | img(480) }}" alt="">{% endif %}
     <span class="video__play"><span>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -28,19 +28,19 @@
   <div class="stack gap-5">
     <span class="t-h3">{{ lp.title }}</span>
     <span class="t-body-sm t-muted">
-      {{ lp.channel or 'Unknown channel' }}
-      {%- if lp.views %} · {{ lp.views | compact }} views{% endif %}
-      {%- if lp.published_at %} · published {{ lp.published_at | date_long }}{% endif %}
+      {{ lp.channel or 'Канал неизвестен' }}
+      {%- if lp.views %} · {{ lp.views | compact }} просмотров{% endif %}
+      {%- if lp.published_at %} · опубликовано {{ lp.published_at | date_long }}{% endif %}
     </span>
 
     {%- if lp.summary %}
-    <div class="row gap-4 row--wrap"><span class="badge badge--success">Spoiler-free</span></div>
+    <div class="row gap-4 row--wrap"><span class="badge badge--success">Без спойлеров</span></div>
     <p class="t-body t-secondary" style="max-width:64ch">{{ lp.summary.overall }}</p>
     {%- if lp.summary.positive %}
     <div class="points">
-      <span class="points__legend">What the playthrough shows</span>
+      <span class="points__legend">Что видно в прохождении</span>
       {%- for claim in lp.summary.positive %}
-      <span class="point"><span>{{ claim.claim }}</span></span>
+      <span class="point"><span>{{ claim.text }}</span></span>
       {%- endfor %}
     </div>
     {%- endif %}
@@ -48,26 +48,26 @@
       <span class="src">
         <svg class="src__glyph" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7h18v10H3z" opacity=".35"/><path d="M10 8.5 16 12l-6 3.5z"/></svg>YouTube
       </span>
-      <span class="src src--ai">AI summary</span>
+      <span class="src src--ai">Резюме ИИ</span>
       {#- "not from reviews" matters: this summary has a different evidentiary basis from
           the two above it and must not be confused with them. -#}
-      <span>Written from the {{ lp.duration_s | duration }} video, not from reviews</span>
+      <span>Составлено по видео ({{ lp.duration_s | duration }}), а не по рецензиям</span>
       <span class="provenance__sep">·</span>
-      <span>Source: {{ lp.transcript_source or 'unknown' }}</span>
+      <span>Источник: {{ lp.transcript_source or 'неизвестен' }}</span>
       <span class="provenance__sep">·</span>
-      <span>Updated {{ lp.summary.provenance.generated_at | ago }}</span>
+      <span>обновлено {{ lp.summary.provenance.generated_at | ago }}</span>
     </div>
     {%- else %}
     {#- No transcript means NO AI conclusions. Writing an "impression" from a video title
         would be pure invention at maximum reputational cost (ADR-016). -#}
     <div class="pending">
-      <span class="badge">{{ 'Waiting' if lp.transcript_status == 'pending' else 'Unavailable' }}</span>
+      <span class="badge">{{ 'Ожидание' if lp.transcript_status == 'pending' else 'Недоступно' }}</span>
       <span>
-        We found this playthrough but could not read its captions, so there is no
-        impression to show. The link and the video details are above.
+        Прохождение нашлось, но прочитать субтитры не удалось — поэтому впечатления
+        показать нечего. Ссылка и данные о видео выше.
       </span>
     </div>
     {%- endif %}
-    <p class="t-caption t-muted">The video itself contains spoilers.</p>
+    <p class="t-caption t-muted">В самом видео есть спойлеры.</p>
   </div>
 </div>

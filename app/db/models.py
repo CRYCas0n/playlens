@@ -447,7 +447,12 @@ class SummaryClaim(Base):
     )
     side: Mapped[str] = mapped_column(sa.String(16), nullable=False)
     aspect: Mapped[str] = mapped_column(sa.String(32), nullable=False)
+    #: The English claim, which is what the validator checked. Kept as the record of what
+    #: was actually verified against the reviews.
     claim: Mapped[str] = mapped_column(sa.Text, nullable=False)
+    #: Its Russian rendering, which is what a reader sees. Nullable: summaries written
+    #: before the site was Russian have none, and they still display -- in English.
+    claim_ru: Mapped[str | None] = mapped_column(sa.Text)
     claim_type: Mapped[str] = mapped_column(sa.String(16), nullable=False)
     evidence_refs: Mapped[list] = mapped_column(JSONColumn, nullable=False, default=list)
     strength: Mapped[str | None] = mapped_column(sa.String(16))

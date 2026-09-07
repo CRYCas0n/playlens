@@ -187,8 +187,8 @@ class TestScoreRendering:
         """EDGE_CASES 3. The single most important rendering rule in the product."""
         html = get(app_client, "/games/orbital-freight-simulator")
         assert "gauge--none" in html
-        assert "Not rated" in html
-        assert "No critic score yet" in html
+        assert "Без оценки" in html
+        assert "Оценки критиков пока нет" in html
         # The gauge arc is driven by --pct, and 0% grey is not the same claim as a 0 score.
         assert 'class="gauge__value">—<' in html.replace("\n", "")
 
@@ -201,27 +201,27 @@ class TestScoreRendering:
     def test_case_5_no_score_at_all(self, app_client, world):
         """EDGE_CASES 5."""
         html = get(app_client, "/games/quiet-harbor")
-        assert "Not enough reviews yet to say anything useful." in html
+        assert "Рецензий пока слишком мало, чтобы сказать что-то полезное." in html
         assert html.count("gauge--none") == 2
 
     def test_case_6_the_review_count_is_always_rendered(self, app_client, world):
         """EDGE_CASES 6: 93 from 118 critics and 93 from 4 must not look identical."""
         rich = get(app_client, "/games/ashen-veil")
-        assert "14 204 ratings" in rich
-        assert "118 reviews" in rich
+        assert "14 204 оценки" in rich
+        assert "118 рецензий" in rich
         thin = get(app_client, "/games/the-lament-of-thorne-hollow")
-        assert "3 reviews" in thin
+        assert "3 рецензии" in thin
 
     def test_case_18_platform_scores_pending_keeps_the_section(self, app_client, world):
         """EDGE_CASES 18: the platforms are real, only the scores are missing."""
         html = get(app_client, "/games/the-lament-of-thorne-hollow")
-        assert "Per-platform scores appear once" in html
-        assert "11 platforms are indexed" in html
-        assert "By platform" in html
+        assert "Оценки по платформам появятся" in html
+        assert "Проиндексировано платформ: 11" in html
+        assert "По платформам" in html
 
     def test_case_17_a_single_platform_still_gets_its_heading(self, app_client, world):
         html = get(app_client, "/games/hollow-signal")
-        assert "By platform" in html
+        assert "По платформам" in html
         assert "plat--more" not in html
 
 
@@ -230,34 +230,34 @@ class TestVerdict:
         """EDGE_CASES 19: 88 vs 51, warning tone, and the direction is named."""
         html = get(app_client, "/games/northlight-drifters")
         assert "consensus__note--warn" in html
-        assert "37 points lower" in html
+        assert "на 37 баллов ниже" in html
 
     def test_case_20_players_higher_is_neutral_and_distinguishable(self, app_client, world):
         """EDGE_CASES 20: same magnitude of gap, different tone."""
         html = get(app_client, "/games/neon-district-2087")
-        assert "18 points higher" in html
+        assert "на 18 баллов выше" in html
         assert "consensus__note--warn" not in html
 
     def test_the_two_directions_do_not_share_a_sentence(self, app_client, world):
         lower = get(app_client, "/games/northlight-drifters")
         higher = get(app_client, "/games/neon-district-2087")
-        assert "points lower" in lower and "points lower" not in higher
-        assert "points higher" in higher and "points higher" not in lower
+        assert "баллов ниже" in lower and "баллов ниже" not in higher
+        assert "баллов выше" in higher and "баллов выше" not in lower
 
 
 class TestSummariesAndSections:
     def test_case_7_no_critic_summary_shows_a_pending_block(self, app_client, world):
         """EDGE_CASES 7/8: pending, not empty -- the data is coming."""
         html = get(app_client, "/games/the-lament-of-thorne-hollow")
-        assert "Critics &amp; players" in html
-        assert "Summary in progress" in html  # 3 critic reviews indexed
-        assert ">Generating<" in html
+        assert "Критики и игроки" in html
+        assert "Резюме готовится" in html  # 3 critic reviews indexed
+        assert ">Составляется<" in html
 
     def test_case_8_zero_reviews_says_nothing_to_summarise(self, app_client, world):
         html = get(app_client, "/games/quiet-harbor")
-        assert "Nothing to summarise yet" in html
-        assert ">Waiting<" in html
-        assert "Summary in progress" not in html
+        assert "Пока нечего резюмировать" in html
+        assert ">Ожидание<" in html
+        assert "Резюме готовится" not in html
 
     def test_case_12_no_lets_play_removes_the_section_and_its_anchor(self, app_client, world):
         """EDGE_CASES 12: removed entirely -- no empty box, no 'no video found'."""
@@ -269,7 +269,7 @@ class TestSummariesAndSections:
     def test_case_14_no_similar_games_is_an_honest_empty_state(self, app_client, world):
         """EDGE_CASES 14: never pad the rail."""
         html = get(app_client, "/games/the-lament-of-thorne-hollow")
-        assert "Nothing comparable yet" in html
+        assert "Похожих пока нет" in html
         assert "sim-card" not in html
 
     def test_case_15_a_similar_card_without_a_reason_omits_the_chip(self, app_client, db, world):
@@ -304,7 +304,7 @@ class TestCovers:
     def test_a_missing_cover_renders_initials_and_no_image(self, app_client, world):
         html = get(app_client, "/games/midnight-parade")
         assert "cover-fallback" in html
-        assert "Cover unavailable" in html
+        assert "Обложки нет" in html
         assert "cover-img" not in html
         assert ">MP<" in html
 
@@ -314,19 +314,19 @@ class TestCatalogEmptyStates:
         """EDGE_CASES 21: filters preserved, two actions, never silently cleared."""
         html = get(app_client, "/games", q="zzzznothing")
         assert "zzzznothing" in html
-        assert "Clear search" in html
+        assert "Очистить поиск" in html
 
     def test_case_22_filters_with_no_results_point_at_the_filters(self, app_client, world):
         """EDGE_CASES 22: different copy from case 21."""
         html = get(app_client, "/games", platform="nintendo-switch-2", score_band="excellent")
         search_html = get(app_client, "/games", q="zzzznothing")
-        assert "Clear all filters" in html
+        assert "Сбросить фильтры" in html
         assert html != search_html
 
     def test_case_23_an_empty_index_is_its_own_message(self, app_client, db):
         """EDGE_CASES 23: distinct from 'your filters matched nothing'."""
         html = get(app_client, "/games")
-        assert "No games indexed yet" in html
+        assert "Игр пока нет" in html
         assert "/admin/monitoring" in html
 
     def test_case_24_an_unknown_slug_is_a_404_page_not_a_stack_trace(self, app_client, world):
@@ -364,7 +364,7 @@ class TestHomeAndAbout:
     def test_the_home_page_leads_with_disagreement(self, app_client, world):
         html = get(app_client, "/")
         assert "Northlight Drifters" in html
-        assert "Players ↓37" in html
+        assert "Игроки ↓37" in html
 
     def test_an_empty_home_page_does_not_crash(self, app_client, db):
         html = get(app_client, "/")
@@ -380,9 +380,9 @@ class TestMonitoringPage:
     def test_case_26_a_stale_pipeline_is_a_banner_not_a_blocking_screen(self, app_client, world):
         """EDGE_CASES 26."""
         html = get(app_client, "/admin/monitoring")
-        assert "Pipeline" in html
-        assert "No successful crawl recorded yet" in html
-        assert "Run now" in html
+        assert "Конвейер" in html
+        assert "Успешных обходов пока не было" in html
+        assert "Запустить сейчас" in html
 
     def test_the_operator_page_is_noindex(self, app_client, world):
         html = get(app_client, "/admin/monitoring")

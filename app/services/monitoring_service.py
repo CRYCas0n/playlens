@@ -159,30 +159,30 @@ class MonitoringService:
         if last_success is None:
             return (
                 "degraded",
-                "No successful crawl recorded yet. The first run populates the catalogue.",
+                "Успешных обходов пока не было. Первый запуск наполнит каталог.",
             )
         age_h = (now - last_success.started_at).total_seconds() / 3600
         if age_h > STALE_AFTER_HOURS:
             return (
                 "down",
-                f"The last successful crawl was {age_h:.1f} hours ago. "
-                "Catalogue data is going stale.",
+                f"Последний успешный обход был {age_h:.1f} ч назад. "
+                "Данные каталога устаревают.",
             )
         if alive_workers == 0:
             return (
                 "degraded",
-                "No worker has reported in. Queued work is not being processed; "
-                "the catalogue and API are unaffected.",
+                "Ни один воркер не выходил на связь. Задачи в очереди не обрабатываются; "
+                "на каталог и API это не влияет.",
             )
         if problems:
             # Partial failure is a crawler's normal state, and the header says which
             # capability is affected rather than implying everything is broken.
             return (
                 "degraded",
-                f"{problems} problems in the last 24 hours. Ingest and the API are "
-                "serving; check the problem log for the affected capability.",
+                f"Проблем за последние 24 часа: {problems}. Загрузка данных и API работают; "
+                "какая именно возможность затронута — смотрите журнал проблем.",
             )
-        return "healthy", "All pipelines are running on schedule."
+        return "healthy", "Все конвейеры работают по расписанию."
 
     def _counters(self, runs, since) -> dict[str, Any]:
         recent = [r for r in runs if r.started_at >= since]

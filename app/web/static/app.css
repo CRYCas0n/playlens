@@ -378,13 +378,22 @@ ul, ol { padding: 0; list-style: none; }
 @media (max-width: 767px) { .grid-games { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5); } }
 
 .game-card { display: flex; flex-direction: column; gap: var(--sp-5); cursor: pointer; }
+/* Cover boxes are 16/9 because that is the shape the source actually sends.
+   Measured over 45 covers in production: every single one is landscape, the median is
+   1.78 (16/9 exactly), the commonest size is the 460x215 Steam capsule and not one is
+   portrait. The 3/4 box these used to be was designed for box art this source never
+   provides, and it showed about a third of each image's width.
+
+   object-position: center top because Metacritic bakes the game's title into the top of
+   the art. Any crop that takes it from the top removes the title, which is what made
+   "Starsand Island" unreadable on the home page. */
 .game-card__cover {
-  position: relative; aspect-ratio: 3 / 4; border-radius: var(--r-md);
+  position: relative; aspect-ratio: 16 / 9; border-radius: var(--r-md);
   background: var(--bg-inset); border: 1px solid var(--border-subtle);
   overflow: hidden; isolation: isolate;
   transition: border-color var(--d-base) var(--e-standard), transform var(--d-base) var(--e-spring);
 }
-.game-card__cover img { width: 100%; height: 100%; object-fit: cover; transition: transform var(--d-slow) var(--e-standard), opacity var(--d-base); }
+.game-card__cover img { width: 100%; height: 100%; object-fit: cover; object-position: center top; transition: transform var(--d-slow) var(--e-standard), opacity var(--d-base); }
 .game-card:hover .game-card__cover { border-color: var(--border-strong); transform: translateY(-3px); }
 .game-card:hover .game-card__cover img { transform: scale(1.045); }
 .game-card__cover::after {
@@ -466,8 +475,8 @@ ul, ol { padding: 0; list-style: none; }
 }
 .ghero__inner { position: relative; z-index: 2; padding-block: var(--sp-13) var(--sp-10); }
 .ghero__grid { display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: var(--sp-9); align-items: end; }
-.ghero__cover { aspect-ratio: 3 / 4; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--border-default); box-shadow: var(--shadow-lg); position: relative; background: var(--bg-inset); }
-.ghero__cover img { width: 100%; height: 100%; object-fit: cover; }
+.ghero__cover { aspect-ratio: 16 / 9; border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--border-default); box-shadow: var(--shadow-lg); position: relative; background: var(--bg-inset); }
+.ghero__cover img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
 .ghero__title { overflow-wrap: anywhere; }
 .ghero__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3) var(--sp-5); color: var(--text-secondary); font-size: var(--fs-body-sm); }
 .ghero__meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border-strong); }
@@ -671,8 +680,8 @@ ul, ol { padding: 0; list-style: none; }
    SimilarGameCard
    ========================================================================== */
 .sim-card { display: flex; flex-direction: column; gap: var(--sp-4); cursor: pointer; }
-.sim-card__cover { position: relative; aspect-ratio: 3 / 4; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border-subtle); background: var(--bg-inset); transition: border-color var(--d-base) var(--e-standard), transform var(--d-base) var(--e-spring); }
-.sim-card__cover img { width: 100%; height: 100%; object-fit: cover; }
+.sim-card__cover { position: relative; aspect-ratio: 16 / 9; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border-subtle); background: var(--bg-inset); transition: border-color var(--d-base) var(--e-standard), transform var(--d-base) var(--e-spring); }
+.sim-card__cover img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
 .sim-card:hover .sim-card__cover { border-color: var(--border-strong); transform: translateY(-3px); }
 .sim-card__title { font-family: var(--font-display); font-weight: 600; font-size: var(--fs-body-sm); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .sim-card:hover .sim-card__title { color: var(--brand-300); }
@@ -756,7 +765,7 @@ ul, ol { padding: 0; list-style: none; }
   transform: translateX(-100%); animation: shimmer 1.4s var(--e-standard) infinite;
 }
 @keyframes shimmer { to { transform: translateX(100%); } }
-.sk--cover { aspect-ratio: 3 / 4; border-radius: var(--r-md); }
+.sk--cover { aspect-ratio: 16 / 9; border-radius: var(--r-md); }
 .sk--line { height: 11px; }
 .sk--line-lg { height: 15px; }
 .sk--title { height: 19px; }
@@ -879,6 +888,15 @@ ul, ol { padding: 0; list-style: none; }
    ========================================================================== */
 .spotlight { position: relative; border-radius: var(--r-2xl); overflow: hidden; border: 1px solid var(--border-default); background: var(--bg-surface); }
 .spotlight__art { position: absolute; inset: 0; }
+/* Needs to be a positioned box: .cover-img inside is absolute, and with a static parent
+   it resolved against .spotlight and covered the whole section, headline and buttons
+   included. */
+.spotlight__cover {
+  position: relative; aspect-ratio: 16 / 9; border-radius: var(--r-lg);
+  overflow: hidden; border: 1px solid var(--border-default); box-shadow: var(--shadow-lg);
+  background: var(--bg-inset);
+}
+.spotlight__cover img { object-position: center top; }
 .spotlight__art img { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
 .spotlight__scrim {
   position: absolute; inset: 0;

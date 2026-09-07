@@ -89,7 +89,7 @@ class TestCatalogEndpoint:
         score = items["ashen-veil"]["metascore"]
         assert score["value"] == 93
         assert score["normalized"] == 93
-        assert score["tier_label"] == "Excellent"
+        assert score["tier_label"] == "Отлично"
         assert score["status"] == "valid"
 
     def test_a_false_zero_is_reported_as_unavailable(self, app_client, catalogue):
@@ -99,7 +99,7 @@ class TestCatalogEndpoint:
         assert user["status"] == "unavailable"
         assert user["value"] is None
         assert user["normalized"] is None
-        assert user["tier_label"] == "Not rated"
+        assert user["tier_label"] == "Без оценки"
 
     def test_search_normalises_punctuation(self, app_client, db, catalogue):
         game = Game(
@@ -177,29 +177,29 @@ class TestGameEndpoint:
         payload = app_client.get("/api/v1/games/ashen-veil").json()
         assert payload["title"] == "Ashen Veil"
         assert payload["verdict"]["derived"] is True
-        assert payload["consensus"]["axis_caption"].startswith("Player scores are published")
+        assert payload["consensus"]["axis_caption"].startswith("Оценки игроков публикуются")
         assert len(payload["platforms"]) == 2
 
     def test_the_verdict_never_contradicts_the_scores(self, app_client, catalogue):
         payload = app_client.get("/api/v1/games/northlight-drifters").json()
         assert payload["verdict"]["kind"] == "players-lower"
         assert payload["verdict"]["delta"] == 37
-        assert "37 points lower" in payload["verdict"]["line"]
+        assert "на 37 баллов ниже" in payload["verdict"]["line"]
 
     def test_players_higher_is_distinguishable(self, app_client, catalogue):
         payload = app_client.get("/api/v1/games/neon-district").json()
         assert payload["verdict"]["kind"] == "players-higher"
-        assert "18 points higher" in payload["verdict"]["line"]
+        assert "на 18 баллов выше" in payload["verdict"]["line"]
 
     def test_a_missing_side_is_stated(self, app_client, catalogue):
         payload = app_client.get("/api/v1/games/hollow-signal").json()
         assert payload["verdict"]["kind"] == "critic-only"
-        assert "No player score yet" in payload["verdict"]["line"]
+        assert "Оценки игроков пока нет" in payload["verdict"]["line"]
 
     def test_no_critic_score_falls_back_to_the_player_sentence(self, app_client, catalogue):
         payload = app_client.get("/api/v1/games/orbital-freight").json()
         assert payload["verdict"]["kind"] == "player-only"
-        assert "No critic score yet" in payload["verdict"]["line"]
+        assert "Оценки критиков пока нет" in payload["verdict"]["line"]
 
     def test_unknown_slug_is_a_problem_document(self, app_client, catalogue):
         response = app_client.get("/api/v1/games/does-not-exist")
@@ -220,7 +220,7 @@ class TestGameEndpoint:
         ).json()
         assert payload["verdict"]["platform_line"]
         assert "PlayStation 5" in payload["verdict"]["platform_line"]
-        assert "lower than on PC" in payload["verdict"]["platform_line"]
+        assert "ниже, чем на PC" in payload["verdict"]["platform_line"]
 
 
 class TestOtherEndpoints:
@@ -332,7 +332,7 @@ class TestMonitoringContract:
     ):
         system = app_client.get("/api/v1/monitoring/status").json()["system"]
         assert system["status"] == "degraded"
-        assert "No successful crawl" in system["message"]
+        assert "Успешных обходов пока не было" in system["message"]
 
     def test_runs_and_events_are_listable(self, app_client, catalogue):
         assert app_client.get("/api/v1/monitoring/runs").json() == {"items": []}
@@ -453,7 +453,7 @@ class TestTheCatalogFragment:
     def test_an_empty_result_renders_the_same_empty_state(self, app_client, catalogue):
         fragment = app_client.get("/games/fragment", params={"q": "zzzznothing"}).text
         assert "zzzznothing" in fragment
-        assert "Clear search" in fragment
+        assert "Очистить поиск" in fragment
 
     def test_it_is_not_in_the_public_api_contract(self, app_client):
         spec = app_client.get("/api/v1/openapi.json").json()

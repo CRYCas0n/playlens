@@ -88,10 +88,21 @@ class ConsensusOut(BaseModel):
 
 class ClaimOut(BaseModel):
     aspect: str
+    #: The English claim -- the wording that was checked against the cited reviews.
     claim: str
+    #: Its Russian rendering, absent on summaries written before the site was Russian.
+    claim_ru: str | None = None
     claim_type: str
     evidence: list[str]
     strength: str | None = None
+
+    @property
+    def text(self) -> str:
+        """What to show a reader: Russian when there is one, the verified English if not.
+
+        A missing translation costs the reader a language, never the finding itself.
+        """
+        return self.claim_ru or self.claim
 
 
 class ProvenanceOut(BaseModel):

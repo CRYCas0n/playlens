@@ -189,6 +189,28 @@ if (await themeButton.count()) {
   if (before === after) failures.push('theme toggle did not change data-theme');
 }
 
+// The hero's own text must be on top of the hero's own art. It was not: the cover image
+// is absolutely positioned, its container was not, so it resolved against the whole
+// section and covered the headline, the verdict, the scores and both buttons. Every
+// other check passed while that was true -- the page was 200, laid out, and unusable.
+await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
+const buried = await page.evaluate(() => {
+  const spot = document.querySelector('.spotlight');
+  if (!spot) return ['no .spotlight on the home page'];
+  const problems = [];
+  for (const [what, sel] of [['headline', 'h1'], ['primary button', '.btn'], ['score chip', '.score']]) {
+    const el = spot.querySelector(sel);
+    if (!el) continue;
+    const b = el.getBoundingClientRect();
+    const top = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+    if (top && !el.contains(top) && !top.contains(el)) {
+      problems.push(`the spotlight ${what} is covered by .${top.className || top.tagName}`);
+    }
+  }
+  return problems;
+});
+for (const problem of buried) failures.push(problem);
+
 await page.goto(BASE + '/games', { waitUntil: 'domcontentloaded' });
 const chip = page.locator('.chip input[name="platform"]').first();
 if (await chip.count()) {

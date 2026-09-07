@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% import "partials/macros.html" as m %}
-{% block title %}Not found — {{ app_name }}{% endblock %}
+{% block title %}Страница не найдена — {{ app_name }}{% endblock %}
 {% block content %}
 <div class="container" style="padding-block:var(--sp-14)">
   {#- The slug is echoed back: a 404 that does not say what it could not find leaves the
       reader unsure whether they mistyped or the catalogue is incomplete. -#}
   {{ m.empty_state(
-      'We don’t have “' ~ slug ~ '” yet',
-      'It may not be indexed, or the link may be out of date. We index games from
-       Metacritic, so if it is there it will usually appear here within a day.',
-      'Browse the catalogue', '/games', variant='error') }}
+      'Игры «' ~ slug ~ '» у нас пока нет',
+      'Возможно, она ещё не проиндексирована или ссылка устарела. Игры берутся с
+       Metacritic — если она есть там, то обычно появляется здесь в течение суток.',
+      'Открыть каталог', '/games', variant='error') }}
 </div>
 {% endblock %}

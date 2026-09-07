@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Setup needed — {{ app_name }}{% endblock %}
+{% block title %}Нужна настройка — {{ app_name }}{% endblock %}
 
 {% block content %}
 {#
@@ -11,27 +11,27 @@
   away. An error page that cannot name the fix is worth less than no error page.
 #}
 <div class="container" style="padding-block:var(--sp-14);max-width:70ch">
-  <span class="badge badge--warning">Setup</span>
-  <h1 class="t-h1" style="margin-top:var(--sp-6)">The database has no tables yet</h1>
+  <span class="badge badge--warning">Настройка</span>
+  <h1 class="t-h1" style="margin-top:var(--sp-6)">В базе данных ещё нет таблиц</h1>
 
   <p class="t-body-lg t-secondary" style="margin-top:var(--sp-6)">
-    Nothing is broken. The database file exists, but the tables that hold games, reviews
-    and jobs have not been created yet — that is a separate step, and it takes one command.
+    Ничего не сломалось. Файл базы существует, но таблицы для игр, рецензий и задач ещё
+    не созданы — это отдельный шаг, и он делается одной командой.
   </p>
 
-  <p class="t-body" style="margin-top:var(--sp-7)">Run this in the project folder:</p>
+  <p class="t-body" style="margin-top:var(--sp-7)">Выполните это в папке проекта:</p>
   <pre class="mono" style="background:var(--bg-inset);border:1px solid var(--border-subtle);
        border-radius:var(--r-md);padding:var(--sp-6);overflow-x:auto"><code>{{ migrate_command }}</code></pre>
 
   <p class="t-body" style="margin-top:var(--sp-7)">
-    Then, to put some games in it to look at:
+    Затем — чтобы было на что посмотреть, добавьте демо-игры:
   </p>
   <pre class="mono" style="background:var(--bg-inset);border:1px solid var(--border-subtle);
        border-radius:var(--r-md);padding:var(--sp-6);overflow-x:auto"><code>python -m scripts.seed_demo</code></pre>
 
   <p class="t-body-sm t-muted" style="margin-top:var(--sp-7)">
-    Reload this page afterwards. The full walkthrough is in
-    <span class="mono">docs/QUICKSTART.md</span>, step 5.
+    После этого обновите страницу. Полное руководство — в
+    <span class="mono">docs/QUICKSTART.md</span>, шаг 5.
   </p>
 </div>
 {% endblock %}
