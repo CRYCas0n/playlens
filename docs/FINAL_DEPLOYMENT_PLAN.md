@@ -376,6 +376,16 @@ one is invisible on the machine the code was written on.
     permits. It failed exactly the games with the largest corpora — the ones most worth
     summarising.
 
+12. **Sixteen classes in templates had no rule in the stylesheet.** Three rendered: raw
+    checkboxes beside every filter chip, a catalogue grid applied to the page container
+    instead of the form, and a responsive utility that hid nothing.
+13. **A stage label was doing logic.** Translating the monitoring stages broke the branch
+    that marks YouTube disabled, because the comparison was against the display string.
+14. **A budget stop spent the key it needed to come back with.** Reaching the daily cost
+    ceiling completes the job successfully having done nothing, so a caller keying by
+    anything permanent never gets another turn — half the catalogue kept its old
+    summaries while the queue read empty.
+
 The sixth is the serious one. The service looked completely healthy — green crawl, green
 API, games arriving — and did almost nothing. Both sides of that seam had tests; the join
 between them had none.
