@@ -310,15 +310,15 @@ class TestMonitoringContract:
         """A generic job list would not locate a stall; these are our stages."""
         stages = app_client.get("/api/v1/monitoring/status").json()["stages"]
         assert [s["name"] for s in stages] == [
-            "Crawl Metacritic", "Fetch reviews", "AI summarise",
-            "Similarity index", "YouTube discovery",
+            "Обход Metacritic", "Загрузка рецензий", "Резюме и переводы",
+            "Похожие игры", "Поиск на YouTube",
         ]
         assert all(set(s) >= {"state", "queued", "running", "failed"} for s in stages)
 
     def test_a_disabled_feature_reads_as_disabled_not_as_healthy(self, app_client, catalogue):
         stages = {s["name"]: s for s in app_client.get(
             "/api/v1/monitoring/status").json()["stages"]}
-        assert stages["YouTube discovery"]["state"] == "disabled"
+        assert stages["Поиск на YouTube"]["state"] == "disabled"
 
     def test_data_quality_is_reported_as_product_metrics(self, app_client, catalogue):
         """An operator needs to know users are seeing empty cards, not row counts."""

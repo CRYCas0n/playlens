@@ -221,16 +221,30 @@ class MonitoringService:
         Named after this product's stages so a stall is located at a glance
         (design/PAGES.md section 4).
         """
+        # Keyed by a stable identifier with the label beside it, because the label is
+        # display text and the key is logic. They were one string, and renaming the
+        # stages into Russian silently turned the "YouTube is switched off" branch into
+        # dead code -- the stage read "done" instead of "disabled", which is the
+        # difference between "nothing to do" and "not doing it".
         stage_queues = {
-            "Crawl Metacritic": ["crawl.tick", "game.sync"],
-            "Fetch reviews": ["reviews.sync"],
-            "AI summarise": ["summary.generate", "summary.gap"],
-            "Similarity index": ["similarity.recompute", "similarity.refresh_stale"],
-            "YouTube discovery": ["youtube.discover", "youtube.transcript", "youtube.summarise"],
+            "crawl": ("Обход Metacritic", ["crawl.tick", "game.sync"]),
+            "reviews": ("Загрузка рецензий", ["reviews.sync"]),
+            "ai": (
+                "Резюме и переводы",
+                ["summary.generate", "summary.gap", "game.translate"],
+            ),
+            "similarity": (
+                "Похожие игры",
+                ["similarity.recompute", "similarity.refresh_stale"],
+            ),
+            "youtube": (
+                "Поиск на YouTube",
+                ["youtube.discover", "youtube.transcript", "youtube.summarise"],
+            ),
         }
         depth = {(d["queue"], d["status"]): d["count"] for d in uow.jobs.queue_depth()}
         stages = []
-        for name, job_types in stage_queues.items():
+        for key, (name, job_types) in stage_queues.items():
             queued = sum(
                 len(uow.jobs.recent(limit=200, job_type=jt, status=JobStatus.QUEUED.value))
                 for jt in job_types
@@ -243,7 +257,10 @@ class MonitoringService:
                 len(uow.jobs.recent(limit=50, job_type=jt, status=JobStatus.DEAD.value))
                 for jt in job_types
             )
-            if name == "YouTube discovery" and not self._settings.youtube_enabled:
+            switched_off = (key == "youtube" and not self._settings.youtube_enabled) or (
+                key == "ai" and not self._settings.llm_enabled
+            )
+            if switched_off:
                 state = "disabled"
             elif failed:
                 state = "error"
